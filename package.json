@@ -1,7 +1,7 @@
 {
   "name": "conductor-runner-example",
   "version": "0.0.1",
-  "packageManager": "yarn@4.6.0",
+  "packageManager": "yarn@1.22.22",
   "description": "",
   "type": "module",
   "main": "dist/index.js",
@@ -9,10 +9,7 @@
     "build": "rollup -c",
     "generate-parser": "antlr4ng -Dlanguage=TypeScript -visitor -o src/parser src/SimpleLang.g4"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tsammeow/conductor-runner-example.git"
-  },
+  "repository": "git+https://github.com/tsammeow/conductor-runner-example.git",
   "author": "tsammeow",
   "license": "ISC",
   "files": [
