@@ -1,5 +1,5 @@
-import { BasicEvaluator } from "conductor/src/conductor/runner";
-import { IRunnerPlugin } from "conductor/src/conductor/runner/types";
+import { BasicEvaluator } from "conductor/dist/conductor/runner";
+import { IRunnerPlugin } from "conductor/dist/conductor/runner/types";
 import { CharStream, CommonTokenStream, AbstractParseTreeVisitor } from 'antlr4ng';
 import { SimpleLangLexer } from './parser/src/SimpleLangLexer';
 import { ExpressionContext, ProgContext, SimpleLangParser } from './parser/src/SimpleLangParser';
@@ -8,7 +8,7 @@ import { SimpleLangVisitor } from './parser/src/SimpleLangVisitor';
 class SimpleLangEvaluatorVisitor extends AbstractParseTreeVisitor<number> implements SimpleLangVisitor<number> {
     // Visit a parse tree produced by SimpleLangParser#prog
     visitProg(ctx: ProgContext): number {
-        return this.visit(ctx.expression());
+        return this.visit(ctx.statement());//this.visit(ctx.expression());
     }
 
     // Visit a parse tree produced by SimpleLangParser#expression

@@ -4,6 +4,9 @@ import { AbstractParseTreeVisitor } from "antlr4ng";
 
 
 import { ProgContext } from "./SimpleLangParser.js";
+import { StatementContext } from "./SimpleLangParser.js";
+import { BlockContext } from "./SimpleLangParser.js";
+import { IfStatementContext } from "./SimpleLangParser.js";
 import { ExpressionContext } from "./SimpleLangParser.js";
 
 
@@ -21,6 +24,24 @@ export class SimpleLangVisitor<Result> extends AbstractParseTreeVisitor<Result> 
      * @return the visitor result
      */
     visitProg?: (ctx: ProgContext) => Result;
+    /**
+     * Visit a parse tree produced by `SimpleLangParser.statement`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitStatement?: (ctx: StatementContext) => Result;
+    /**
+     * Visit a parse tree produced by `SimpleLangParser.block`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitBlock?: (ctx: BlockContext) => Result;
+    /**
+     * Visit a parse tree produced by `SimpleLangParser.ifStatement`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitIfStatement?: (ctx: IfStatementContext) => Result;
     /**
      * Visit a parse tree produced by `SimpleLangParser.expression`.
      * @param ctx the parse tree
