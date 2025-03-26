@@ -9,12 +9,13 @@ export type Instruction = {
     syms?: string[]
     addr?: number
     arity?: number
+    pos?: number
 }
 
 class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVisitor<void> {
     private wc: number = 0;
     private instrs: Instruction[] = [];
-
+    private compiled_time_environment;
     public beautifiedPrint() : string {
         let out = "";
         for (let i = 0; i < this.instrs.length; i++) {
