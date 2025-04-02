@@ -56,17 +56,17 @@ statement:
     | returnStatement
     ;
 
-functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType? blockStatement SEMI;
+functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType blockStatement SEMI;
 
 variableAssignment: IDENT ASSIGN expression SEMI;
 
-parameters: IDENT COLON TYPE (COMMA IDENT COLON TYPE)*;
+parameters: IDENT typeAnnotation (COMMA IDENT typeAnnotation)*;
 
 returnType: ARROW TYPE;
 
-constantDeclaration: CONST IDENT typeAnnotation? ASSIGN expression SEMI;
+constantDeclaration: CONST IDENT typeAnnotation ASSIGN expression SEMI;
 
-variableDeclaration: LET IDENT typeAnnotation? ASSIGN expression SEMI;
+variableDeclaration: LET IDENT typeAnnotation ASSIGN expression SEMI;
 
 typeAnnotation: COLON TYPE;
 
