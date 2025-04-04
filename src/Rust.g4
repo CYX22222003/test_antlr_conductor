@@ -38,7 +38,7 @@ ARROW: '->';
 
 // Identifiers and Literals
 IDENT: [a-zA-Z_][a-zA-Z0-9_]*;
-NUMBER: [0-9]+;
+NUMBER: [0-9]+ ('.' [0-9]+)? ([eE] [+-]? [0-9]+)?;
 WHITESPACE: [ \t\r\n]+ -> skip; // Ignore whitespace
 LINE_COMMENT : '//' ~[\r\n]* -> skip ;  // Single-line comments
 BLOCK_COMMENT : '/*' .*? '*/' -> skip ; // Multi-line comments (non-greedy)
