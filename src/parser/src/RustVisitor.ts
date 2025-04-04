@@ -11,7 +11,6 @@ import { ParametersContext } from "./RustParser.js";
 import { ReturnTypeContext } from "./RustParser.js";
 import { ConstantDeclarationContext } from "./RustParser.js";
 import { VariableDeclarationContext } from "./RustParser.js";
-import { TypeAnnotationContext } from "./RustParser.js";
 import { BlockStatementContext } from "./RustParser.js";
 import { ExpressionStatementContext } from "./RustParser.js";
 import { ExpressionContext } from "./RustParser.js";
@@ -23,6 +22,10 @@ import { WhileLoopContext } from "./RustParser.js";
 import { IfStatementContext } from "./RustParser.js";
 import { ConseqStatementContext } from "./RustParser.js";
 import { AltStatementContext } from "./RustParser.js";
+import { PrimitiveTypeAnnotationContext } from "./RustParser.js";
+import { TypeAnnotationContext } from "./RustParser.js";
+import { ValidTypeContext } from "./RustParser.js";
+import { ValidParamTypeContext } from "./RustParser.js";
 
 
 /**
@@ -81,12 +84,6 @@ export class RustVisitor<Result> extends AbstractParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitVariableDeclaration?: (ctx: VariableDeclarationContext) => Result;
-    /**
-     * Visit a parse tree produced by `RustParser.typeAnnotation`.
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    visitTypeAnnotation?: (ctx: TypeAnnotationContext) => Result;
     /**
      * Visit a parse tree produced by `RustParser.blockStatement`.
      * @param ctx the parse tree
@@ -153,5 +150,29 @@ export class RustVisitor<Result> extends AbstractParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitAltStatement?: (ctx: AltStatementContext) => Result;
+    /**
+     * Visit a parse tree produced by `RustParser.primitiveTypeAnnotation`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitPrimitiveTypeAnnotation?: (ctx: PrimitiveTypeAnnotationContext) => Result;
+    /**
+     * Visit a parse tree produced by `RustParser.typeAnnotation`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitTypeAnnotation?: (ctx: TypeAnnotationContext) => Result;
+    /**
+     * Visit a parse tree produced by `RustParser.validType`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitValidType?: (ctx: ValidTypeContext) => Result;
+    /**
+     * Visit a parse tree produced by `RustParser.validParamType`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitValidParamType?: (ctx: ValidParamTypeContext) => Result;
 }
 

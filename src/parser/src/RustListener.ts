@@ -11,7 +11,6 @@ import { ParametersContext } from "./RustParser.js";
 import { ReturnTypeContext } from "./RustParser.js";
 import { ConstantDeclarationContext } from "./RustParser.js";
 import { VariableDeclarationContext } from "./RustParser.js";
-import { TypeAnnotationContext } from "./RustParser.js";
 import { BlockStatementContext } from "./RustParser.js";
 import { ExpressionStatementContext } from "./RustParser.js";
 import { ExpressionContext } from "./RustParser.js";
@@ -23,6 +22,10 @@ import { WhileLoopContext } from "./RustParser.js";
 import { IfStatementContext } from "./RustParser.js";
 import { ConseqStatementContext } from "./RustParser.js";
 import { AltStatementContext } from "./RustParser.js";
+import { PrimitiveTypeAnnotationContext } from "./RustParser.js";
+import { TypeAnnotationContext } from "./RustParser.js";
+import { ValidTypeContext } from "./RustParser.js";
+import { ValidParamTypeContext } from "./RustParser.js";
 
 
 /**
@@ -110,16 +113,6 @@ export class RustListener implements ParseTreeListener {
      * @param ctx the parse tree
      */
     exitVariableDeclaration?: (ctx: VariableDeclarationContext) => void;
-    /**
-     * Enter a parse tree produced by `RustParser.typeAnnotation`.
-     * @param ctx the parse tree
-     */
-    enterTypeAnnotation?: (ctx: TypeAnnotationContext) => void;
-    /**
-     * Exit a parse tree produced by `RustParser.typeAnnotation`.
-     * @param ctx the parse tree
-     */
-    exitTypeAnnotation?: (ctx: TypeAnnotationContext) => void;
     /**
      * Enter a parse tree produced by `RustParser.blockStatement`.
      * @param ctx the parse tree
@@ -230,6 +223,46 @@ export class RustListener implements ParseTreeListener {
      * @param ctx the parse tree
      */
     exitAltStatement?: (ctx: AltStatementContext) => void;
+    /**
+     * Enter a parse tree produced by `RustParser.primitiveTypeAnnotation`.
+     * @param ctx the parse tree
+     */
+    enterPrimitiveTypeAnnotation?: (ctx: PrimitiveTypeAnnotationContext) => void;
+    /**
+     * Exit a parse tree produced by `RustParser.primitiveTypeAnnotation`.
+     * @param ctx the parse tree
+     */
+    exitPrimitiveTypeAnnotation?: (ctx: PrimitiveTypeAnnotationContext) => void;
+    /**
+     * Enter a parse tree produced by `RustParser.typeAnnotation`.
+     * @param ctx the parse tree
+     */
+    enterTypeAnnotation?: (ctx: TypeAnnotationContext) => void;
+    /**
+     * Exit a parse tree produced by `RustParser.typeAnnotation`.
+     * @param ctx the parse tree
+     */
+    exitTypeAnnotation?: (ctx: TypeAnnotationContext) => void;
+    /**
+     * Enter a parse tree produced by `RustParser.validType`.
+     * @param ctx the parse tree
+     */
+    enterValidType?: (ctx: ValidTypeContext) => void;
+    /**
+     * Exit a parse tree produced by `RustParser.validType`.
+     * @param ctx the parse tree
+     */
+    exitValidType?: (ctx: ValidTypeContext) => void;
+    /**
+     * Enter a parse tree produced by `RustParser.validParamType`.
+     * @param ctx the parse tree
+     */
+    enterValidParamType?: (ctx: ValidParamTypeContext) => void;
+    /**
+     * Exit a parse tree produced by `RustParser.validParamType`.
+     * @param ctx the parse tree
+     */
+    exitValidParamType?: (ctx: ValidParamTypeContext) => void;
 
     visitTerminal(node: TerminalNode): void {}
     visitErrorNode(node: ErrorNode): void {}

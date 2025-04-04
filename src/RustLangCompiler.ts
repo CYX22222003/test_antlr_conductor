@@ -1,6 +1,6 @@
-import { AbstractParseTreeVisitor, CharStream, CommonTokenStream, ParseTree } from "antlr4ng";
+import { AbstractParseTreeVisitor } from "antlr4ng";
 import { RustVisitor } from "./parser/src/RustVisitor";
-import { BlockStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfStatementContext, ParametersContext, ProgramContext, ReturnStatementContext, RustParser, StatementContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
+import { BlockStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfStatementContext, ParametersContext, PrimitiveTypeAnnotationContext, ProgramContext, ReturnStatementContext, ReturnTypeContext, RustParser, StatementContext, TypeAnnotationContext, ValidParamTypeContext, ValidTypeContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
 
 export type Instruction = {
     tag: string
@@ -11,6 +11,11 @@ export type Instruction = {
     arity?: number
     pos?: number[]
     num?: number
+}
+
+type ParameterType = {
+    name: string,
+    type: string
 }
 
 class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVisitor<void> {
@@ -28,7 +33,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
 
     private compile_time_environment_position(env, x) {
         let last_ind = env.length;
-        while (this.value_index(env[--last_ind], x) === -1) {}
+        while (this.value_index(env[--last_ind], x) === -1) { }
         return [last_ind, this.value_index(env[last_ind], x)]
     }
 
@@ -109,7 +114,12 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     }
 
     public visitFunctionDeclaration(ctx: FunctionDeclarationContext): void {
-        let params = ctx.parameters().IDENT().map(node => node.getText());
+        const paramsInfo = ctx.parameters() 
+            ? this.visitParameters(ctx.parameters()) as Array<ParameterType>
+            : [];
+        let params = paramsInfo.map(p => p.name);
+        let types = paramsInfo.map(p => p.type);
+        let retTypes = this.visitReturnType(ctx.returnType())
         let current_ce = this.compile_time_environment;
 
         this.instrs[this.wc++] = {
@@ -140,6 +150,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     public visitConstantDeclaration(ctx: ConstantDeclarationContext): void {
         this.visit(ctx.expression());
         const symbol: string = ctx.IDENT().getText();
+        this.visitPrimitiveTypeAnnotation(ctx.primitiveTypeAnnotation());
         this.instrs[this.wc++] = {
             tag: "ASSIGN",
             sym: symbol,
@@ -150,6 +161,8 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     public visitVariableDeclaration(ctx: VariableDeclarationContext): void {
         this.visit(ctx.expression());
         const symbol: string = ctx.IDENT().getText();
+        this.visitPrimitiveTypeAnnotation(ctx.primitiveTypeAnnotation());
+
         this.instrs[this.wc++] = {
             tag: "ASSIGN",
             sym: symbol,
@@ -166,7 +179,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
         // console.log(locals.length > 0);
         let current = this.compile_time_environment
         if (locals.length > 0) {
-            this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals, num: locals.length}
+            this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals, num: locals.length }
         }
         // Extend current compile_time_environment
         this.compile_time_environment = this.compile_time_environment_extend(locals, current)
@@ -207,7 +220,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
         let count: number = ctx.getChildCount()
         if (count === 1) {
             if (ctx.BOOL()) {
-                this.instrs[this.wc++] = { tag: "LDC", val: ctx.getChild(0).getText() };
+                this.instrs[this.wc++] = { tag: "LDC", val: ctx.getChild(0).getText() === "true" };
             } else if (ctx.NUMBER()) {
                 this.instrs[this.wc++] = { tag: "LDC", val: parseFloat(ctx.getChild(0).getText()) };
             } else if (ctx.IDENT()) {
@@ -233,7 +246,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     }
 
     public visitFunctionName(ctx: FunctionNameContext): void {
-        let symbol: string = ctx.IDENT().getText();
+        let symbol: string = ctx.getChild(0).getText();
         this.instrs[this.wc++] = {
             tag: "LD",
             sym: symbol,
@@ -257,6 +270,46 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
         } else {
             this.instrs[this.wc++] = { tag: "RESET" };
         }
+    }
+
+    public visitParameters(ctx: ParametersContext): Array<ParameterType> {
+        const params: ParameterType[] = [];
+        for (let i = 0; i < ctx.IDENT().length; i++) {
+            params.push({
+                name: ctx.IDENT(i).getText(),
+                type: this.visitTypeAnnotation(ctx.typeAnnotation(i))
+            } as ParameterType);
+        }
+
+        return params;
+    }
+
+    public visitTypeAnnotation(ctx: TypeAnnotationContext) {
+        return this.visitValidType(ctx.validType())
+    }
+
+    public visitValidType(ctx: ValidTypeContext) {
+        if (ctx.getChildCount() == 1) {
+            return ctx.getChild(0).getText();
+        } else {
+            const params = ctx.validParamType()
+                ? this.visitValidParamType(ctx.validParamType())
+                : [];
+            const returnType = this.visitValidType(ctx.validType());
+            return {type: "fun", params: params, returnType: returnType}
+        }
+    }
+
+    public visitValidParamType(ctx: ValidParamTypeContext) {
+        return ctx.TYPE().map(n => n.getText());
+    }
+
+    public visitPrimitiveTypeAnnotation(ctx: PrimitiveTypeAnnotationContext): string {
+        return ctx.getChild(1).getText();
+    }
+
+    public visitReturnType(ctx: ReturnTypeContext): string {
+        return ctx.getChild(1).getText()
     }
 
     public visitVariableAssignment(ctx: VariableAssignmentContext) {

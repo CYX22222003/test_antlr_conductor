@@ -12,6 +12,7 @@ LOOP: 'loop';
 BOOL: 'true' | 'false';
 TYPE: 'num' | 'bool';
 MUT: 'mut';
+NULL: 'null';
 
 // Operators and Symbols
 ASSIGN: '=';
@@ -56,23 +57,21 @@ statement:
     | returnStatement
     ;
 
-functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType blockStatement SEMI;
+functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType blockStatement SEMI; //Type check added
 
-variableAssignment: IDENT ASSIGN expression SEMI;
+variableAssignment: IDENT ASSIGN expression SEMI; //Type check added
 
 parameters: IDENT typeAnnotation (COMMA IDENT typeAnnotation)*;
 
-returnType: ARROW TYPE;
+returnType: ARROW TYPE; //Type check added
 
-constantDeclaration: CONST IDENT typeAnnotation ASSIGN expression SEMI;
+constantDeclaration: CONST IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
 
-variableDeclaration: LET IDENT typeAnnotation ASSIGN expression SEMI;
+variableDeclaration: LET IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
 
-typeAnnotation: COLON TYPE;
+blockStatement: LBRACE statement* RBRACE; // Type check added
 
-blockStatement: LBRACE statement* RBRACE;
-
-expressionStatement: expression SEMI;
+expressionStatement: expression SEMI; //Type check added
 
 expression:
       NUMBER 
@@ -84,20 +83,20 @@ expression:
     | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression
     | (MINUS | NOT) expression
     | LPAREN expression RPAREN
-    ;
+    ; // Type check added
 
 // return statement
-returnStatement: RETURN expression? SEMI;
+returnStatement: RETURN expression SEMI; //Type checked added
 
 // Function call
-functionCall: functionName LPAREN arguments? RPAREN;
+functionCall: functionName LPAREN arguments? RPAREN; // Type check added
 
 functionName: IDENT;
 
 arguments: expression (COMMA expression)*;
 
 // while loop
-whileLoop: WHILE expression blockStatement;
+whileLoop: WHILE expression blockStatement; // Type check added
 
 // If statement
 ifStatement: IF expression conseqStatement (ELSE altStatement)?;
@@ -106,3 +105,11 @@ conseqStatement: blockStatement;
 
 altStatement: blockStatement;
 
+//Valid types
+primitiveTypeAnnotation: COLON TYPE; //Type check added
+
+typeAnnotation: COLON validType; //Type check added
+
+validType: TYPE | LPAREN (validParamType)? RPAREN ARROW validType; //Type check added
+
+validParamType: TYPE (MUT TYPE)*; 
