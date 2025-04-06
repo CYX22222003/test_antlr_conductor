@@ -3,7 +3,6 @@ import RustHeap from "./RustHeap";
 import { Tag } from "./RustHeap";
 
 class RustIdealizedVM {
-    private chicken;
     private E; // heap Address
     private RTS = [];  // JS array (stack) of Addresses
     private OS = []; // JS array (stack) of words (Addresses, word-encoded literals, numbers)
@@ -189,7 +188,6 @@ class RustIdealizedVM {
     }
 
     public execute() {
-        this.chicken = 0
         console.log("try")
         const frame_address = this.heap_allocate_Frame(0);
         this.E = this.heap_Environment_extend(frame_address, this.heap_empty_Environment);
