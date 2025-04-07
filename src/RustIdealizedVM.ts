@@ -22,6 +22,8 @@ class RustIdealizedVM {
     private is_Undefined = address => this.HEAP.heap_get_tag(address) === Tag.Undefined_tag
     private is_Number = address =>
         this.HEAP.heap_get_tag(address) === Tag.Number_tag
+    private is_String = address =>
+        this.HEAP.heap_get_tag(address) === Tag.String_tag
 
     private word_to_string = word => {
         const buf = new ArrayBuffer(8);
@@ -29,8 +31,8 @@ class RustIdealizedVM {
         view.setFloat64(0, word);
         let binStr = '';
         for (let i = 0; i < 8; i++) {
-            binStr += ('00000000' + 
-                   view.getUint8(i).toString(2)).slice(-8) + 
+            binStr += ('00000000' +
+                   view.getUint8(i).toString(2)).slice(-8) +
                    ' ';
         }
         return binStr
@@ -39,15 +41,58 @@ class RustIdealizedVM {
 
     private heap_allocate_Number = n => {
         const number_address = this.HEAP.heap_allocate(Tag.Number_tag, 2)
-        console.log("allocated address", number_address, "to number")
         this.HEAP.heap_set(number_address + 1, n)
-        console.log(`Current number ${n} is allocated to ${number_address}`);
         return number_address
     }
 
+    private string_pool = [];
+    private string_pool_map = {};
+    private default_owner_frame = -1;
+    private default_owner_value = -1;
+    // string
+    // [1 byte tag, 2 byte address of string in the str pool, 2 bytes unused, 
+    // 2 bytes #children, 1 byte unused]
+
+    // alternative [1 byte tag, 2 byte address, 5 bytes unused]
+    // followed by two indexes of the the owner (frame and )
+    private heap_allocate_String = (str) => {
+      const string_pool_add = str => {
+          if (this.string_pool_map.hasOwnProperty(str)) {
+              return this.string_pool_map[str];
+          } else {
+              const id = this.string_pool.length;
+              this.string_pool_map[str] = id;
+              this.string_pool.push(str);
+              return id;
+          }
+      }
+
+      const address = this.HEAP.heap_allocate(Tag.String_tag, 3);
+      const id = string_pool_add(str);
+      this.HEAP.heap_set_2_bytes_at_offset(address, 1, id);
+
+      this.HEAP.heap_set(address + 1, this.default_owner_frame);
+      this.HEAP.heap_set(address + 2, this.default_owner_value);
+      return address;
+    }
+
+    private heap_set_String_owner = (string_address, env_address, frame_index, valune_index) => {
+        const old_frame_index = this.HEAP.heap_get(string_address + 1);
+        const old_value_index = this.HEAP.heap_get(string_address + 2);
+        if (old_frame_index !== -1 && old_value_index !== -1) {
+            this.heap_clear_old_String_onwer(env_address, old_frame_index, old_value_index);
+        }
+        this.HEAP.heap_set(string_address + 1, frame_index);
+        this.HEAP.heap_set(string_address + 2, valune_index);
+    }
+
+    private heap_clear_old_String_onwer = (env_address, frame_index, value_index) => {
+        this.heap_set_Environment_value(env_address, [frame_index, value_index], this.Unassigned)
+    }
+
     // closure
-    // [1 byte tag, 1 byte arity, 2 bytes pc, 1 byte unused, 
-    //  2 bytes #children, 1 byte unused] 
+    // [1 byte tag, 1 byte arity, 2 bytes pc, 1 byte unused,
+    //  2 bytes #children, 1 byte unused]
     // followed by the address of env
     // note: currently bytes at offset 4 and 7 are not used;
     //   they could be used to increase pc and #children range
@@ -68,9 +113,10 @@ class RustIdealizedVM {
 
     private is_Closure = address => this.HEAP.heap_get_tag(address) === Tag.Closure_tag;
 
-    // block frame 
-    // [1 byte tag, 4 bytes unused, 
-    //  2 bytes #children, 1 byte unused] 
+    // block frame
+    // [1 byte tag, 4 bytes unused,
+    //  2 bytes #children, 1 byte unused]
+    // followed by address of env
 
     private heap_allocate_Blockframe = (env) => {
         const address = this.HEAP.heap_allocate(Tag.Blockframe_tag, 2)
@@ -82,9 +128,9 @@ class RustIdealizedVM {
 
     private is_Blockframe = address => this.HEAP.heap_get_tag(address) === Tag.Blockframe_tag
 
-    // call frame 
-    // [1 byte tag, 1 byte unused, 2 bytes pc, 
-    //  1 byte unused, 2 bytes #children, 1 byte unused] 
+    // call frame
+    // [1 byte tag, 1 byte unused, 2 bytes pc,
+    //  1 byte unused, 2 bytes #children, 1 byte unused]
     // followed by the address of env
 
     private heap_allocate_Callframe = (env, pc) => {
@@ -102,23 +148,23 @@ class RustIdealizedVM {
     private is_Callframe = address => this.HEAP.heap_get_tag(address) === Tag.Callframe_tag
 
     // environment frame
-    // [1 byte tag, 4 bytes unused, 
-    //  2 bytes #children, 1 byte unused] 
+    // [1 byte tag, 4 bytes unused,
+    //  2 bytes #children, 1 byte unused]
     // followed by the addresses of its values
 
     private heap_allocate_Frame = number_of_values => this.HEAP.heap_allocate(Tag.Frame_tag, number_of_values + 1)
 
     // environment
-    // [1 byte tag, 4 bytes unused, 
-    //  2 bytes #children, 1 byte unused] 
+    // [1 byte tag, 4 bytes unused,
+    //  2 bytes #children, 1 byte unused]
     // followed by the addresses of its frames
 
     private heap_allocate_Environment = number_of_frames => this.HEAP.heap_allocate(Tag.Environment_tag, number_of_frames + 1)
 
     private heap_empty_Environment = this.heap_allocate_Environment(0)
 
-    // access environment given by address 
-    // using a "position", i.e. a pair of 
+    // access environment given by address
+    // using a "position", i.e. a pair of
     // frame index and value index
     private heap_get_Environment_value =
         (env_address, position) => {
@@ -139,12 +185,12 @@ class RustIdealizedVM {
                 frame_address, value_index, value)
         }
 
-    // extend a given environment by a new frame: 
+    // extend a given environment by a new frame:
     // create a new environment that is bigger by 1
     // frame slot than the given environment.
-    // copy the frame Addresses of the given 
+    // copy the frame Addresses of the given
     // environment to the new environment.
-    // enter the address of the new frame to end 
+    // enter the address of the new frame to end
     // of the new environment
     private heap_Environment_extend =
         (frame_address, env_address) => {
@@ -163,23 +209,27 @@ class RustIdealizedVM {
         }
 
     private JS_value_to_address = x => {
-        console.log("this is x from JS_value_to_address: ", x, " with type of", typeof x)
+        // console.log("this is x from JS_value_to_address: ", x, " with type of", typeof x)
         return typeof x === "boolean"
             ? (x ? this.True : this.False)
             : typeof x === "number"
                 ? this.heap_allocate_Number(x)
-                : "unknown word tag from JS_value_to_address: " + x
+                : typeof x === "string"
+                  ? this.heap_allocate_String(x)
+                  : "unknown word tag from JS_value_to_address: " + x
     }
 
     private address_to_JS_value = x => {
-        console.log("this is x from address_to_JS_value: ", x)
+        // console.log("this is x from address_to_JS_value: ", x)
         return this.is_Boolean(x)
             ? (this.is_True(x) ? true : false)
             : this.is_Number(x)
                 ? this.HEAP.heap_get(x + 1)
-                : this.is_Closure(x)
-                    ? "<closure>"
-                    : "unknown word tag: " + x
+                : this.is_String(x)
+                    ? this.string_pool[this.HEAP.heap_get_2_bytes_at_offset(x, 1)]
+                    : this.is_Closure(x)
+                        ? "<closure>"
+                        : "unknown word tag: " + x
     }
 
 
@@ -188,16 +238,21 @@ class RustIdealizedVM {
     }
 
     public execute() {
-        console.log("try")
+        // console.log("try")
         const frame_address = this.heap_allocate_Frame(0);
         this.E = this.heap_Environment_extend(frame_address, this.heap_empty_Environment);
-        console.log(`Initial environment at ${this.E}`)
+        // console.log(`Initial environment at ${this.E}`)
         while (this.instrs[this.PC].tag !== "DONE") {
-            console.log(`Current environment at ${this.E} at PC ${this.PC}`) 
+            // console.log(`Current environment at ${this.E} at PC ${this.PC}`)
             const instr = this.instrs[this.PC++];
             this.microcode[instr.tag](instr);
         }
-        return this.address_to_JS_value(this.peek(this.OS, 0));
+
+        if (this.OS.length > 0) {
+            return this.address_to_JS_value(this.peek(this.OS, 0));
+        } else {
+            return undefined;
+        }
     }
 
     private push = (array, ...items) => {
@@ -210,7 +265,7 @@ class RustIdealizedVM {
     private apply_unop = (op, v) => this.JS_value_to_address(this.unop_microcode[op](this.address_to_JS_value(v)));
 
     private apply_binop = (op, v1, v2) => {
-        console.log("apply binop with values of ", v1)
+        // console.log("apply binop with values of ", v1)
         return this.JS_value_to_address(this.binop_microcode[op](this.address_to_JS_value(v1), this.address_to_JS_value(v2)));
     }
 
@@ -265,7 +320,7 @@ class RustIdealizedVM {
                 return undefined;
             }
         }
-        console.log(this.E);
+        // console.log(this.E);
         throw new Error(`unbound name: ${x} at ${this.PC}`);
     }
 
@@ -275,7 +330,7 @@ class RustIdealizedVM {
         LDC: (instr) => this.push(this.OS, this.JS_value_to_address(instr.val)),
         UNOP: (instr) => this.push(this.OS, this.apply_unop(instr.sym, this.OS.pop())),
         BINOP: (instr) => {
-            console.log("BINOP microcode with OS of", this.OS)
+            // console.log("BINOP microcode with OS of", this.OS)
             const val2 = this.OS.pop();
             const val1 = this.OS.pop();
             return this.push(this.OS, this.apply_binop(instr.sym, val1, val2));
@@ -285,45 +340,52 @@ class RustIdealizedVM {
         GOTO: (instr) => (this.PC = instr.addr),
         ENTER_SCOPE: (instr) => {
             this.push(this.RTS, this.heap_allocate_Blockframe(this.E));
-            console.log(`E1: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`) 
+            // console.log(`E1: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`)
             const frame_address = this.heap_allocate_Frame(instr.num);
-            console.log(`E2: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`) 
+            // console.log(`E2: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`)
             this.E = this.heap_Environment_extend(frame_address, this.E);
             for (let i = 0; i < instr.num; i++) {
                 this.HEAP.heap_set_child(frame_address, i, this.Unassigned);
             }
-            console.log(`E3: Current free pointer at ${this.HEAP.free}, current environment at ${this.E} at PC ${this.PC}`) 
-            console.log("ENTER_SCODE succ")
+            // console.log(`E3: Current free pointer at ${this.HEAP.free}, current environment at ${this.E} at PC ${this.PC}`)
+            // console.log("ENTER_SCODE succ")
         },
         EXIT_SCOPE: (instr) => {
             this.E = this.heap_get_Blockframe_environment(this.RTS.pop())
-            console.log("EXIT_SCOPE succ");
+            // console.log("EXIT_SCOPE succ");
         },
         LD: (instr) => {
             let val;
-            console.log("LD instruction random")
+            // console.log("LD instruction random")
             val = this.heap_get_Environment_value(this.E, instr.pos);
-            console.log("environment value of LD", val)
+            // console.log("environment value of LD", val)
             if (this.is_Unassigned(val)) {
-                console.log("unassigned error instruction:", instr)
+                // console.log("unassigned error instruction:", instr)
                 throw new Error("access of unassigned variable");
             }
             this.push(this.OS, val);
         },
-        ASSIGN: (instr) => this.heap_set_Environment_value(this.E, instr.pos, this.peek(this.OS, 0)),
+        ASSIGN: (instr) => {
+            const heap_node_addr = this.peek(this.OS, 0);
+            const node_tag = this.HEAP.heap_get_tag(heap_node_addr);
+            if (node_tag === Tag.String_tag) {
+                this.heap_set_String_owner(heap_node_addr, this.E, instr.pos[0], instr.pos[1]);
+            }
+            this.heap_set_Environment_value(this.E, instr.pos, heap_node_addr);
+        },
         LDF: (instr) => {
             const closure_address = this.heap_allocate_Closure(instr.arity, instr.addr, this.E);
             this.push(this.OS, closure_address);
         },
         CALL: (instr) => {
-            console.log("Call Microcode", instr)
+            // console.log("Call Microcode", instr)
             const arity = instr.arity;
             const fun = this.peek(this.OS, arity);
             const frame_address = this.heap_allocate_Frame(arity);
             for (let i = arity - 1; i >= 0; i--) {
                 const popped_value = this.OS.pop()
-                console.log("Popped value address", popped_value);
-                console.log("Actual popper value", this.address_to_JS_value(popped_value));
+                // console.log("Popped value address", popped_value);
+                // console.log("Actual popper value", this.address_to_JS_value(popped_value));
                 this.HEAP.heap_set_child(frame_address, i, popped_value);
             }
             this.OS.pop(); // pop fun

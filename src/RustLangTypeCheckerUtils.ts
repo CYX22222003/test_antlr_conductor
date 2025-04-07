@@ -1,6 +1,7 @@
 export type Type =
     | "num"
     | "bool"
+    | "string"
     | { type: "function"; params: Type[]; returnType: Type }
     | null
     | "undefined-CYX";

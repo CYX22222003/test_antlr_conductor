@@ -182,7 +182,9 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
             return "num" as Type;
         } else if (ctx.BOOL()) {
             return "bool" as Type;
-        } else if (ctx.IDENT()) {
+        } else if (ctx.STRING_LITERAL()) {
+            return "string" as Type;
+        }else if (ctx.IDENT()) {
             const name: string = ctx.IDENT().getText();
             const type: Type = this.type_environment.lookup(name);
             if (!type) {
