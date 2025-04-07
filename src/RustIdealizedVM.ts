@@ -87,7 +87,25 @@ class RustIdealizedVM {
     }
 
     private heap_clear_old_String_onwer = (env_address, frame_index, value_index) => {
-        this.heap_set_Environment_value(env_address, [frame_index, value_index], this.Unassigned)
+        this.heap_set_Environment_value(env_address, [frame_index, value_index], this.Unassigned);
+    }
+
+    private heap_set_String_owner_frame_addr = (frame_address, value_index, string_address) => {
+        const old_frame_addr = this.HEAP.heap_get(string_address + 1);
+        const old_value_index = this.HEAP.heap_get(string_address + 2);
+        console.log("Old frame address: " + old_frame_addr);
+        console.log("Old value index: " + old_value_index);
+        if (old_frame_addr !== -1 && old_value_index !== -1) {
+            this.heap_clear_old_String_owner_fa(old_frame_addr, old_value_index);
+        }
+        console.log("New address: " + frame_address);
+        this.HEAP.heap_set(string_address + 1, frame_address);
+        this.HEAP.heap_set(string_address + 2, value_index);
+        console.log("Extracted value from node " +this.HEAP.heap_get(string_address + 1))
+    }
+
+    private heap_clear_old_String_owner_fa = (frame_address, value_index) => {
+        this.HEAP.heap_set_child(frame_address, value_index, this.Unassigned);
     }
 
     // closure
@@ -369,7 +387,9 @@ class RustIdealizedVM {
             const heap_node_addr = this.peek(this.OS, 0);
             const node_tag = this.HEAP.heap_get_tag(heap_node_addr);
             if (node_tag === Tag.String_tag) {
-                this.heap_set_String_owner(heap_node_addr, this.E, instr.pos[0], instr.pos[1]);
+                const frame_address = this.HEAP.heap_get_child(this.E, instr.pos[0]);
+                console.log("Frame address of pos 0 " + frame_address);
+                this.heap_set_String_owner_frame_addr(frame_address, instr.pos[1], heap_node_addr);
             }
             this.heap_set_Environment_value(this.E, instr.pos, heap_node_addr);
         },
@@ -384,8 +404,9 @@ class RustIdealizedVM {
             const frame_address = this.heap_allocate_Frame(arity);
             for (let i = arity - 1; i >= 0; i--) {
                 const popped_value = this.OS.pop()
-                // console.log("Popped value address", popped_value);
-                // console.log("Actual popper value", this.address_to_JS_value(popped_value));
+                if (this.HEAP.heap_get_tag(popped_value) === Tag.String_tag) {
+                    this.heap_set_String_owner_frame_addr(frame_address, i, popped_value)
+                } 
                 this.HEAP.heap_set_child(frame_address, i, popped_value);
             }
             this.OS.pop(); // pop fun
