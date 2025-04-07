@@ -42,15 +42,20 @@ class RustIdealizedVM {
 
     private heap_allocate_Number = n => {
         const number_address = this.HEAP.heap_allocate(Tag.Number_tag, 2)
-        console.log("allocated address", number_address, "to number")
         this.HEAP.heap_set(number_address + 1, n)
-        console.log(`Current number ${n} is allocated to ${number_address}`);
         return number_address
     }
 
     private string_pool = [];
     private string_pool_map = {};
+    private default_owner_frame = -1;
+    private default_owner_value = -1;
+    // string
+    // [1 byte tag, 2 byte address of string in the str pool, 2 bytes unused, 
+    // 2 bytes #children, 1 byte unused]
 
+    // alternative [1 byte tag, 2 byte address, 5 bytes unused]
+    // followed by two indexes of the the owner (frame and )
     private heap_allocate_String = (str) => {
       const string_pool_add = str => {
           if (this.string_pool_map.hasOwnProperty(str)) {
@@ -63,10 +68,27 @@ class RustIdealizedVM {
           }
       }
 
-      const address = this.HEAP.heap_allocate(Tag.String_tag, 1);
+      const address = this.HEAP.heap_allocate(Tag.String_tag, 3);
       const id = string_pool_add(str);
       this.HEAP.heap_set_2_bytes_at_offset(address, 1, id);
+
+      this.HEAP.heap_set(address + 1, this.default_owner_frame);
+      this.HEAP.heap_set(address + 2, this.default_owner_value);
       return address;
+    }
+
+    private heap_set_String_owner = (string_address, env_address, frame_index, valune_index) => {
+        const old_frame_index = this.HEAP.heap_get(string_address + 1);
+        const old_value_index = this.HEAP.heap_get(string_address + 2);
+        if (old_frame_index !== -1 && old_value_index !== -1) {
+            this.heap_clear_old_String_onwer(env_address, old_frame_index, old_value_index);
+        }
+        this.HEAP.heap_set(string_address + 1, frame_index);
+        this.HEAP.heap_set(string_address + 2, valune_index);
+    }
+
+    private heap_clear_old_String_onwer = (env_address, frame_index, value_index) => {
+        this.heap_set_Environment_value(env_address, [frame_index, value_index], this.Unassigned)
     }
 
     // closure
@@ -95,6 +117,7 @@ class RustIdealizedVM {
     // block frame
     // [1 byte tag, 4 bytes unused,
     //  2 bytes #children, 1 byte unused]
+    // followed by address of env
 
     private heap_allocate_Blockframe = (env) => {
         const address = this.HEAP.heap_allocate(Tag.Blockframe_tag, 2)
@@ -339,7 +362,14 @@ class RustIdealizedVM {
             }
             this.push(this.OS, val);
         },
-        ASSIGN: (instr) => this.heap_set_Environment_value(this.E, instr.pos, this.peek(this.OS, 0)),
+        ASSIGN: (instr) => {
+            const heap_node_addr = this.peek(this.OS, 0);
+            const node_tag = this.HEAP.heap_get_tag(heap_node_addr);
+            if (node_tag === Tag.String_tag) {
+                this.heap_set_String_owner(heap_node_addr, this.E, instr.pos[0], instr.pos[1]);
+            }
+            this.heap_set_Environment_value(this.E, instr.pos, heap_node_addr);
+        },
         LDF: (instr) => {
             const closure_address = this.heap_allocate_Closure(instr.arity, instr.addr, this.E);
             this.push(this.OS, closure_address);
