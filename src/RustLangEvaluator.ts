@@ -98,14 +98,14 @@ export class RustEvaluator extends BasicEvaluator {
             const tokenStream = new CommonTokenStream(lexer);
             const parser = new RustParser(tokenStream);
             const compiler = new RustLangCompiler();
-            const typeChecker = new RustLangTypeChecker();
+            // const typeChecker = new RustLangTypeChecker();
             
             // Parse the input
             const tree = parser.program();
             
             // Evaluate the parsed tree
             // const result = this.visitor.visit(tree);
-            typeChecker.visit(tree);
+            // typeChecker.visit(tree);
             compiler.visit(tree);
             
             const idealizedVM = new RustIdealizedVM(compiler.getInstructions());

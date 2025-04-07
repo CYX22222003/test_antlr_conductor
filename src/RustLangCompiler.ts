@@ -267,11 +267,13 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
 
     public visitFunctionCall(ctx: FunctionCallContext): void {
         this.visit(ctx.getChild(0));
-        const args = ctx.arguments().expression();
-        for (let expr of args) {
-            this.visit(expr);
+        const args = ctx.arguments();
+        if (args) {
+            for (let expr of args.expression()) {
+                this.visit(expr);
+            }
         }
-        this.instrs[this.wc++] = { tag: "CALL", arity: args.length }
+        this.instrs[this.wc++] = { tag: "CALL", arity: args? args.expression().length : 0 }
     }
 
     public visitReturnStatement(ctx: ReturnStatementContext): void {

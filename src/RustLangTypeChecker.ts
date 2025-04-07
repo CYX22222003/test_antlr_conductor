@@ -249,6 +249,9 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
     }
 
     public checkCallArguments(ctx: ArgumentsContext): Type[] {
+        if (!ctx) {
+            return [];
+        }
         return ctx.expression().map(exp => this.visit(exp));
     }
 
