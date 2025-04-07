@@ -82,6 +82,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     private handleStatements(stmts: StatementContext | StatementContext[] | null) {
         if (stmts !== null) {
             if (Array.isArray(stmts)) {
+                console.log(stmts);
                 for (let i = 0; i <= stmts.length - 1; i++) {
                     const stmt = stmts[i];
                     this.visit(stmt);
@@ -158,6 +159,9 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     }
 
     public visitExpressionStatement(ctx: ExpressionStatementContext): void {
+        if (!ctx.SEMI()) {
+            throw new Error("Statement must end with ;")
+        }
         this.visit(ctx.expression());
     }
 
@@ -204,20 +208,23 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     }
 
     public visitExpression(ctx: ExpressionContext): void {
-        let count: number = ctx.getChildCount()
+        let count: number = ctx.getChildCount();
+        console.log("Number of children: " + count)
+        console.log("First child: " + ctx.getChild(0));
         if (count === 1) {
             if (ctx.BOOL()) {
                 this.instrs[this.wc++] = { tag: "LDC", val: ctx.getChild(0).getText() };
             } else if (ctx.NUMBER()) {
                 this.instrs[this.wc++] = { tag: "LDC", val: parseFloat(ctx.getChild(0).getText()) };
             } else if (ctx.IDENT()) {
-                let symbol = ctx.getChild(0).getText();
+                let symbol = ctx.IDENT().getText();
                 this.instrs[this.wc++] = { tag: "LD", sym: symbol, pos: this.compile_time_environment_position(this.compile_time_environment, symbol) };
             } else if (ctx.STRING_LITERAL()) {
               let rawText = ctx.getChild(0).getText();
               let unquoted = rawText.slice(1, -1);
               this.instrs[this.wc++] = { tag: "LDC", val: unquoted };
             } else {
+                console.log("visit function call");
                 this.visit(ctx.functionCall());
             }
         } else if (count === 2) {

@@ -210,7 +210,7 @@ class RustIdealizedVM {
         }
 
     private JS_value_to_address = x => {
-        console.log("this is x from JS_value_to_address: ", x, " with type of", typeof x)
+        // console.log("this is x from JS_value_to_address: ", x, " with type of", typeof x)
         return typeof x === "boolean"
             ? (x ? this.True : this.False)
             : typeof x === "number"
@@ -221,7 +221,7 @@ class RustIdealizedVM {
     }
 
     private address_to_JS_value = x => {
-        console.log("this is x from address_to_JS_value: ", x)
+        // console.log("this is x from address_to_JS_value: ", x)
         return this.is_Boolean(x)
             ? (this.is_True(x) ? true : false)
             : this.is_Number(x)
@@ -240,16 +240,21 @@ class RustIdealizedVM {
 
     public execute() {
         this.chicken = 0
-        console.log("try")
+        // console.log("try")
         const frame_address = this.heap_allocate_Frame(0);
         this.E = this.heap_Environment_extend(frame_address, this.heap_empty_Environment);
-        console.log(`Initial environment at ${this.E}`)
+        // console.log(`Initial environment at ${this.E}`)
         while (this.instrs[this.PC].tag !== "DONE") {
-            console.log(`Current environment at ${this.E} at PC ${this.PC}`)
+            // console.log(`Current environment at ${this.E} at PC ${this.PC}`)
             const instr = this.instrs[this.PC++];
             this.microcode[instr.tag](instr);
         }
-        return this.address_to_JS_value(this.peek(this.OS, 0));
+
+        if (this.OS.length > 0) {
+            return this.address_to_JS_value(this.peek(this.OS, 0));
+        } else {
+            return undefined;
+        }
     }
 
     private push = (array, ...items) => {
@@ -262,7 +267,7 @@ class RustIdealizedVM {
     private apply_unop = (op, v) => this.JS_value_to_address(this.unop_microcode[op](this.address_to_JS_value(v)));
 
     private apply_binop = (op, v1, v2) => {
-        console.log("apply binop with values of ", v1)
+        // console.log("apply binop with values of ", v1)
         return this.JS_value_to_address(this.binop_microcode[op](this.address_to_JS_value(v1), this.address_to_JS_value(v2)));
     }
 
@@ -317,7 +322,7 @@ class RustIdealizedVM {
                 return undefined;
             }
         }
-        console.log(this.E);
+        // console.log(this.E);
         throw new Error(`unbound name: ${x} at ${this.PC}`);
     }
 
@@ -327,7 +332,7 @@ class RustIdealizedVM {
         LDC: (instr) => this.push(this.OS, this.JS_value_to_address(instr.val)),
         UNOP: (instr) => this.push(this.OS, this.apply_unop(instr.sym, this.OS.pop())),
         BINOP: (instr) => {
-            console.log("BINOP microcode with OS of", this.OS)
+            // console.log("BINOP microcode with OS of", this.OS)
             const val2 = this.OS.pop();
             const val1 = this.OS.pop();
             return this.push(this.OS, this.apply_binop(instr.sym, val1, val2));
@@ -337,27 +342,27 @@ class RustIdealizedVM {
         GOTO: (instr) => (this.PC = instr.addr),
         ENTER_SCOPE: (instr) => {
             this.push(this.RTS, this.heap_allocate_Blockframe(this.E));
-            console.log(`E1: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`)
+            // console.log(`E1: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`)
             const frame_address = this.heap_allocate_Frame(instr.num);
-            console.log(`E2: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`)
+            // console.log(`E2: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`)
             this.E = this.heap_Environment_extend(frame_address, this.E);
             for (let i = 0; i < instr.num; i++) {
                 this.HEAP.heap_set_child(frame_address, i, this.Unassigned);
             }
-            console.log(`E3: Current free pointer at ${this.HEAP.free}, current environment at ${this.E} at PC ${this.PC}`)
-            console.log("ENTER_SCODE succ")
+            // console.log(`E3: Current free pointer at ${this.HEAP.free}, current environment at ${this.E} at PC ${this.PC}`)
+            // console.log("ENTER_SCODE succ")
         },
         EXIT_SCOPE: (instr) => {
             this.E = this.heap_get_Blockframe_environment(this.RTS.pop())
-            console.log("EXIT_SCOPE succ");
+            // console.log("EXIT_SCOPE succ");
         },
         LD: (instr) => {
             let val;
-            console.log("LD instruction random")
+            // console.log("LD instruction random")
             val = this.heap_get_Environment_value(this.E, instr.pos);
-            console.log("environment value of LD", val)
+            // console.log("environment value of LD", val)
             if (this.is_Unassigned(val)) {
-                console.log("unassigned error instruction:", instr)
+                // console.log("unassigned error instruction:", instr)
                 throw new Error("access of unassigned variable");
             }
             this.push(this.OS, val);
@@ -375,14 +380,14 @@ class RustIdealizedVM {
             this.push(this.OS, closure_address);
         },
         CALL: (instr) => {
-            console.log("Call Microcode", instr)
+            // console.log("Call Microcode", instr)
             const arity = instr.arity;
             const fun = this.peek(this.OS, arity);
             const frame_address = this.heap_allocate_Frame(arity);
             for (let i = arity - 1; i >= 0; i--) {
                 const popped_value = this.OS.pop()
-                console.log("Popped value address", popped_value);
-                console.log("Actual popper value", this.address_to_JS_value(popped_value));
+                // console.log("Popped value address", popped_value);
+                // console.log("Actual popper value", this.address_to_JS_value(popped_value));
                 this.HEAP.heap_set_child(frame_address, i, popped_value);
             }
             this.OS.pop(); // pop fun
