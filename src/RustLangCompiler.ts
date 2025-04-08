@@ -115,7 +115,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     }
 
     public visitFunctionDeclaration(ctx: FunctionDeclarationContext): void {
-        const paramsInfo = ctx.parameters() 
+        const paramsInfo = ctx.parameters()
             ? this.visitParameters(ctx.parameters()) as Array<ParameterType>
             : [];
         let params = paramsInfo.map(p => p.name);

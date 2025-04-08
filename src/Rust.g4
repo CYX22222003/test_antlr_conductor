@@ -35,6 +35,7 @@ LEQ: '<=';
 GEQ: '>=';
 NOT: '!';
 ARROW: '->';
+AMP: '&';
 
 // Identifiers and Literals
 IDENT: [a-zA-Z_][a-zA-Z0-9_]*;
@@ -85,6 +86,7 @@ expression:
     | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression
     | (MINUS | NOT) expression
     | LPAREN expression RPAREN
+    | AMP expression
     ; // Type check added
 
 // return statement
@@ -114,4 +116,4 @@ typeAnnotation: COLON validType; //Type check added
 
 validType: TYPE | LPAREN (validParamType)? RPAREN ARROW validType; //Type check added
 
-validParamType: TYPE (MUT TYPE)*; 
+validParamType: TYPE (MUT TYPE)*;
