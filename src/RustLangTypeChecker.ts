@@ -106,7 +106,7 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
         this.type_environment.declare(name, funcType);
         // Enter scope
         const extended_env = new Environment()
-        extended_env.parent = this.type_environment;
+        const old_env = this.type_environment;
         this.type_environment = extended_env;
 
         if (ctx.parameters()) {
@@ -114,9 +114,8 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
                 this.type_environment.declare(paramsNames[i], paramsTypes[i]);
             }
         }
-        const bodyType = this.visit(ctx.functionBlockStatement());
+        const bodyType = this.visit(ctx.blockStatement());
         //Exit scope
-        const old_env = this.type_environment.parent;
         this.type_environment = old_env;
 
         if (!this.typesEqual(bodyType, returnType)) {
@@ -129,6 +128,9 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
     public visitVariableAssignment(ctx: VariableAssignmentContext): Type {
         const target_type: Type = this.type_environment.lookup(ctx.IDENT().getText());
         const expr_type: Type = this.visit(ctx.expression());
+        if (!target_type) {
+            throw new Error(`${ctx.IDENT().getText()}: Cannot assign to an undeclared variable`)
+        }
         if (!this.typesEqual(target_type, expr_type)) {
             throw new Error(`${ctx.IDENT().getText()}: Cannot assign a type of ${expr_type} to ${target_type}`);
         }

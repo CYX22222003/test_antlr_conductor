@@ -118,7 +118,7 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<any> implements RustVis
                     this.type_environment.declare(paramsNames[i], paramsTypes[i]);
                 }
             }
-            const bodyType = this.visit(ctx.functionBlockStatement());
+            const bodyType = this.visit(ctx.blockStatement());
             //Exit scope
             const old_env = this.type_environment.parent;
             this.type_environment = old_env;

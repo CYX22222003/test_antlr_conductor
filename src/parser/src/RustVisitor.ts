@@ -12,7 +12,6 @@ import { ReturnTypeContext } from "./RustParser.js";
 import { ConstantDeclarationContext } from "./RustParser.js";
 import { VariableDeclarationContext } from "./RustParser.js";
 import { BlockStatementContext } from "./RustParser.js";
-import { FunctionBlockStatementContext } from "./RustParser.js";
 import { ExpressionStatementContext } from "./RustParser.js";
 import { ExpressionContext } from "./RustParser.js";
 import { ReturnStatementContext } from "./RustParser.js";
@@ -91,12 +90,6 @@ export class RustVisitor<Result> extends AbstractParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitBlockStatement?: (ctx: BlockStatementContext) => Result;
-    /**
-     * Visit a parse tree produced by `RustParser.functionBlockStatement`.
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    visitFunctionBlockStatement?: (ctx: FunctionBlockStatementContext) => Result;
     /**
      * Visit a parse tree produced by `RustParser.expressionStatement`.
      * @param ctx the parse tree
