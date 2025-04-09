@@ -12,6 +12,7 @@ import { ReturnTypeContext } from "./RustParser.js";
 import { ConstantDeclarationContext } from "./RustParser.js";
 import { VariableDeclarationContext } from "./RustParser.js";
 import { BlockStatementContext } from "./RustParser.js";
+import { FunctionBlockStatementContext } from "./RustParser.js";
 import { ExpressionStatementContext } from "./RustParser.js";
 import { ExpressionContext } from "./RustParser.js";
 import { ReturnStatementContext } from "./RustParser.js";
@@ -123,6 +124,16 @@ export class RustListener implements ParseTreeListener {
      * @param ctx the parse tree
      */
     exitBlockStatement?: (ctx: BlockStatementContext) => void;
+    /**
+     * Enter a parse tree produced by `RustParser.functionBlockStatement`.
+     * @param ctx the parse tree
+     */
+    enterFunctionBlockStatement?: (ctx: FunctionBlockStatementContext) => void;
+    /**
+     * Exit a parse tree produced by `RustParser.functionBlockStatement`.
+     * @param ctx the parse tree
+     */
+    exitFunctionBlockStatement?: (ctx: FunctionBlockStatementContext) => void;
     /**
      * Enter a parse tree produced by `RustParser.expressionStatement`.
      * @param ctx the parse tree

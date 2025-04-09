@@ -58,7 +58,7 @@ statement:
     | returnStatement
     ;
 
-functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType blockStatement SEMI; //Type check added
+functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType functionBlockStatement; //Type check added
 
 variableAssignment: IDENT ASSIGN expression SEMI; //Type check added
 
@@ -71,6 +71,8 @@ constantDeclaration: CONST IDENT primitiveTypeAnnotation ASSIGN expression SEMI;
 variableDeclaration: LET IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
 
 blockStatement: LBRACE statement* RBRACE; // Type check added
+
+functionBlockStatement: LBRACE statement* RBRACE;
 
 expressionStatement: expression SEMI; //Type check added
 
