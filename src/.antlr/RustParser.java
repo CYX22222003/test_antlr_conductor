@@ -123,6 +123,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_program; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterProgram(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitProgram(this);
+		}
 	}
 
 	public final ProgramContext program() throws RecognitionException {
@@ -194,6 +202,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_statement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitStatement(this);
+		}
 	}
 
 	public final StatementContext statement() throws RecognitionException {
@@ -299,6 +315,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_functionDeclaration; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterFunctionDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitFunctionDeclaration(this);
+		}
 	}
 
 	public final FunctionDeclarationContext functionDeclaration() throws RecognitionException {
@@ -357,6 +381,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_variableAssignment; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterVariableAssignment(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitVariableAssignment(this);
+		}
 	}
 
 	public final VariableAssignmentContext variableAssignment() throws RecognitionException {
@@ -406,6 +438,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_parameters; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterParameters(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitParameters(this);
+		}
 	}
 
 	public final ParametersContext parameters() throws RecognitionException {
@@ -458,6 +498,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_returnType; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterReturnType(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitReturnType(this);
+		}
 	}
 
 	public final ReturnTypeContext returnType() throws RecognitionException {
@@ -499,6 +547,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_constantDeclaration; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterConstantDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitConstantDeclaration(this);
+		}
 	}
 
 	public final ConstantDeclarationContext constantDeclaration() throws RecognitionException {
@@ -548,6 +604,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_variableDeclaration; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterVariableDeclaration(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitVariableDeclaration(this);
+		}
 	}
 
 	public final VariableDeclarationContext variableDeclaration() throws RecognitionException {
@@ -595,6 +659,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_blockStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterBlockStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitBlockStatement(this);
+		}
 	}
 
 	public final BlockStatementContext blockStatement() throws RecognitionException {
@@ -645,6 +717,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_expressionStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterExpressionStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitExpressionStatement(this);
+		}
 	}
 
 	public final ExpressionStatementContext expressionStatement() throws RecognitionException {
@@ -702,6 +782,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_expression; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterExpression(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitExpression(this);
+		}
 	}
 
 	public final ExpressionContext expression() throws RecognitionException {
@@ -883,6 +971,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_returnStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterReturnStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitReturnStatement(this);
+		}
 	}
 
 	public final ReturnStatementContext returnStatement() throws RecognitionException {
@@ -924,6 +1020,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_functionCall; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterFunctionCall(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitFunctionCall(this);
+		}
 	}
 
 	public final FunctionCallContext functionCall() throws RecognitionException {
@@ -969,6 +1073,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_functionName; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterFunctionName(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitFunctionName(this);
+		}
 	}
 
 	public final FunctionNameContext functionName() throws RecognitionException {
@@ -1008,6 +1120,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_arguments; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterArguments(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitArguments(this);
+		}
 	}
 
 	public final ArgumentsContext arguments() throws RecognitionException {
@@ -1061,6 +1181,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_whileLoop; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterWhileLoop(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitWhileLoop(this);
+		}
 	}
 
 	public final WhileLoopContext whileLoop() throws RecognitionException {
@@ -1105,6 +1233,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_ifStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterIfStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitIfStatement(this);
+		}
 	}
 
 	public final IfStatementContext ifStatement() throws RecognitionException {
@@ -1154,6 +1290,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_conseqStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterConseqStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitConseqStatement(this);
+		}
 	}
 
 	public final ConseqStatementContext conseqStatement() throws RecognitionException {
@@ -1186,6 +1330,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_altStatement; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterAltStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitAltStatement(this);
+		}
 	}
 
 	public final AltStatementContext altStatement() throws RecognitionException {
@@ -1217,6 +1369,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_primitiveTypeAnnotation; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterPrimitiveTypeAnnotation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitPrimitiveTypeAnnotation(this);
+		}
 	}
 
 	public final PrimitiveTypeAnnotationContext primitiveTypeAnnotation() throws RecognitionException {
@@ -1252,6 +1412,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_typeAnnotation; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterTypeAnnotation(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitTypeAnnotation(this);
+		}
 	}
 
 	public final TypeAnnotationContext typeAnnotation() throws RecognitionException {
@@ -1293,6 +1461,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_validType; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterValidType(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitValidType(this);
+		}
 	}
 
 	public final ValidTypeContext validType() throws RecognitionException {
@@ -1362,6 +1538,14 @@ public class RustParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_validParamType; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).enterValidParamType(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof RustListener ) ((RustListener)listener).exitValidParamType(this);
+		}
 	}
 
 	public final ValidParamTypeContext validParamType() throws RecognitionException {
