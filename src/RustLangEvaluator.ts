@@ -7,6 +7,7 @@ import { RustVisitor } from './parser/src/RustVisitor';
 import RustLangCompiler from './RustLangCompiler';
 import RustIdealizedVM from "./RustIdealizedVM";
 import RustLangTypeChecker from "./RustLangTypeChecker";
+import RustBorrowChecker from "./RustBorrowChecker";
 
 class RustEvaluatorVisitor extends AbstractParseTreeVisitor<number> implements RustVisitor<number> {
     // Visit a parse tree produced by SimpleLangParser#prog
@@ -99,6 +100,7 @@ export class RustEvaluator extends BasicEvaluator {
             const parser = new RustParser(tokenStream);
             const compiler = new RustLangCompiler();
             const typeChecker = new RustLangTypeChecker();
+            const onwershipChecker =  new RustBorrowChecker();
             
             // Parse the input
             const tree = parser.program();
@@ -106,6 +108,7 @@ export class RustEvaluator extends BasicEvaluator {
             // Evaluate the parsed tree
             // const result = this.visitor.visit(tree);
             typeChecker.visit(tree);
+            onwershipChecker.visit(tree);
             compiler.visit(tree);
             
             const idealizedVM = new RustIdealizedVM(compiler.getInstructions());
