@@ -134,7 +134,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
         this.instrs[this.wc++] = goto_instruction
         // extend compile-time environment
         this.compile_time_environment = this.compile_time_environment_extend(params, current_ce);
-        this.visit(ctx.functionBlockStatement());
+        this.visit(ctx.blockStatement());
         this.instrs[this.wc++] = { tag: 'LDC', val: undefined }
         this.instrs[this.wc++] = { tag: 'RESET' }
         goto_instruction["addr"] = this.wc;
@@ -186,9 +186,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
             this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals, num: locals.length }
         }
         // Extend current compile_time_environment
-        this.compile_time_environment = this.compile_time_environment_extend(locals, current) //For function and block it will extend parent
-        // TARGET: only extend for block (while, conditional, normal)
-        // Function block, [locals].
+        this.compile_time_environment = this.compile_time_environment_extend(locals, current)
         const stmts = ctx.statement();
         this.handleStatements(stmts)
         if (locals.length > 0) {
