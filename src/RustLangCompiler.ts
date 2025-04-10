@@ -119,8 +119,8 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
             ? this.visitParameters(ctx.parameters()) as Array<ParameterType>
             : [];
         let params = paramsInfo.map(p => p.name);
-        let types = paramsInfo.map(p => p.type);
-        let retTypes = this.visitReturnType(ctx.returnType())
+        // let types = paramsInfo.map(p => p.type);
+        // let retTypes = this.visitReturnType(ctx.returnType())
         let current_ce = this.compile_time_environment;
 
         this.instrs[this.wc++] = {
@@ -205,6 +205,9 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
         jump_on_false_instr["addr"] = this.wc;
         if (ctx.altStatement())
             this.visit(ctx.altStatement());
+        
+        if (!ctx.altStatement())
+            this.instrs[this.wc++] = {"tag": "LDC", "val": undefined};
         goto_instr["addr"] = this.wc;
     }
 

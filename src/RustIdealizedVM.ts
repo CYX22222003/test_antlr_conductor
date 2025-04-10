@@ -93,15 +93,15 @@ class RustIdealizedVM {
     private heap_set_String_owner_frame_addr = (frame_address, value_index, string_address) => {
         const old_frame_addr = this.HEAP.heap_get(string_address + 1);
         const old_value_index = this.HEAP.heap_get(string_address + 2);
-        console.log("Old frame address: " + old_frame_addr);
-        console.log("Old value index: " + old_value_index);
+        // console.log("Old frame address: " + old_frame_addr);
+        // console.log("Old value index: " + old_value_index);
         if (old_frame_addr !== -1 && old_value_index !== -1) {
             this.heap_clear_old_String_owner_fa(old_frame_addr, old_value_index);
         }
-        console.log("New address: " + frame_address);
+        // console.log("New address: " + frame_address);
         this.HEAP.heap_set(string_address + 1, frame_address);
         this.HEAP.heap_set(string_address + 2, value_index);
-        console.log("Extracted value from node " +this.HEAP.heap_get(string_address + 1))
+        // console.log("Extracted value from node " +this.HEAP.heap_get(string_address + 1))
     }
 
     private heap_clear_old_String_owner_fa = (frame_address, value_index) => {
@@ -228,7 +228,9 @@ class RustIdealizedVM {
 
     private JS_value_to_address = x => {
         // console.log("this is x from JS_value_to_address: ", x, " with type of", typeof x)
-        return typeof x === "boolean"
+        return x === undefined
+            ? this.Undefined 
+            : typeof x === "boolean"
             ? (x ? this.True : this.False)
             : typeof x === "number"
                 ? this.heap_allocate_Number(x)
@@ -247,6 +249,8 @@ class RustIdealizedVM {
                     ? this.string_pool[this.HEAP.heap_get_2_bytes_at_offset(x, 1)]
                     : this.is_Closure(x)
                         ? "<closure>"
+                        : this.is_Undefined(x)
+                        ? undefined
                         : "unknown word tag: " + x
     }
 
@@ -388,7 +392,7 @@ class RustIdealizedVM {
             const node_tag = this.HEAP.heap_get_tag(heap_node_addr);
             if (node_tag === Tag.String_tag) {
                 const frame_address = this.HEAP.heap_get_child(this.E, instr.pos[0]);
-                console.log("Frame address of pos 0 " + frame_address);
+                // console.log("Frame address of pos 0 " + frame_address);
                 this.heap_set_String_owner_frame_addr(frame_address, instr.pos[1], heap_node_addr);
             }
             this.heap_set_Environment_value(this.E, instr.pos, heap_node_addr);

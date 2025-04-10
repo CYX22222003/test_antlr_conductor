@@ -13,30 +13,30 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
     private binop_arithmic_xs: string[] = ["+", "-", "*", "/"];
         private binop_comp_xs: string[] = ["==", "!=", "<", ">", "<=", ">="];
     
-        private typesEqual(ta: TypeOwnership, tb: TypeOwnership): boolean {
-            const a: Type = ta.type;
-            const b: Type = tb.type;
-            if (a === null || b === null) {
-                return a === b;
-            }
+        // private typesEqual(ta: TypeOwnership, tb: TypeOwnership): boolean {
+        //     const a: Type = ta.type;
+        //     const b: Type = tb.type;
+        //     if (a === null || b === null) {
+        //         return a === b;
+        //     }
     
-            if (typeof a === "string" && typeof b === "string") {
-                return a === b;
-            } else if (typeof a === "object" && typeof b === "object") {
-                if (a.type === "function" && b.type === "function") {
-                    if (a.params.length !== b.params.length) {
-                        return false;
-                    }
-                    for (let i = 0; i < a.params.length; i++) {
-                        if (!this.typesEqual(ta.paramsTypeOwnership[i], tb.paramsTypeOwnership[i])) {
-                            return false;
-                        }
-                    }
-                    return this.typesEqual(ta.returnTypeOwnership, tb.returnTypeOwnership);
-                }
-            } 
-            return false;
-        }
+        //     if (typeof a === "string" && typeof b === "string") {
+        //         return a === b;
+        //     } else if (typeof a === "object" && typeof b === "object") {
+        //         if (a.type === "function" && b.type === "function") {
+        //             if (a.params.length !== b.params.length) {
+        //                 return false;
+        //             }
+        //             for (let i = 0; i < a.params.length; i++) {
+        //                 if (!this.typesEqual(ta.paramsTypeOwnership[i], tb.paramsTypeOwnership[i])) {
+        //                     return false;
+        //                 }
+        //             }
+        //             return this.typesEqual(ta.returnTypeOwnership, tb.returnTypeOwnership);
+        //         }
+        //     } 
+        //     return false;
+        // }
     
         public visitProgram(ctx: ProgramContext) : TypeOwnership {
             let stmts = ctx.statement();
@@ -91,9 +91,9 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             const name = ctx.IDENT().getText()
             const type = this.visit(ctx.primitiveTypeAnnotation());
             const exprType = this.visit(ctx.expression());
-            if (!this.typesEqual(type, exprType)) {
-                throw new Error(`Type mismatch in declaring ${name}`);
-            }
+            // if (!this.typesEqual(type, exprType)) {
+            //     throw new Error(`Type mismatch in declaring ${name}`);
+            // }
             if (exprType.type === "string" 
                 && exprType.hasOwnProperty("ownershipFlag") 
                 && exprType.ownershipFlag) {
@@ -108,9 +108,9 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             const name = ctx.IDENT().getText()
             const type = this.visit(ctx.primitiveTypeAnnotation());
             const exprType = this.visit(ctx.expression());
-            if (!this.typesEqual(type, exprType)) {
-                throw new Error(`Type mismatch in declaring ${name}`);
-            }
+            // if (!this.typesEqual(type, exprType)) {
+            //     throw new Error(`Type mismatch in declaring ${name}`);
+            // }
 
             if (exprType.type === "string" 
                 && exprType.hasOwnProperty("ownershipFlag") 
@@ -140,7 +140,7 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             this.ownership_environment.declare(name, funcType);
             // Enter scope
             const extended_env = new OwnershipEnvironment()
-            const old_env = this.ownership_environment;
+            extended_env.parent = this.ownership_environment;
             this.ownership_environment = extended_env;
     
             if (ctx.parameters()) {
@@ -150,23 +150,31 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             }
             const bodyType = this.visit(ctx.blockStatement());
             //Exit scope
+            const old_env = this.ownership_environment.parent;
             this.ownership_environment = old_env;
     
-            if (!this.typesEqual(bodyType, returnTypeOwnership)) {
-                throw new Error(
-                    `unequal body type and return type at ${name}: 
-                    expect ${returnTypeOwnership} but actually return ${bodyType}
-                    `
-                );
-            }
+            // if (!this.typesEqual(bodyType, returnTypeOwnership)) {
+            //     throw new Error(
+            //         `unequal body type and return type at ${name}: 
+            //         expect ${returnTypeOwnership} but actually return ${bodyType}
+            //         `
+            //     );
+            // }
     
             return returnTypeOwnership;
         }
     
         public visitVariableAssignment(ctx: VariableAssignmentContext): TypeOwnership {
-            const target_type: TypeOwnership = this.ownership_environment.lookup(ctx.IDENT().getText());
-            const expr_type: TypeOwnership = this.visit(ctx.expression());
-            return expr_type;
+            const type: TypeOwnership = this.ownership_environment.lookup(ctx.IDENT().getText());
+            const name: string = ctx.IDENT().getText();
+            const exprType: TypeOwnership = this.visit(ctx.expression());
+            if (exprType.type === "string" 
+                && exprType.hasOwnProperty("ownershipFlag") 
+                && exprType.ownershipFlag) {
+                exprType.ownershipFlag = false;
+            }
+            type.ownershipFlag = true;
+            return exprType;
         }
     
         private checkParametersTypes(ctx: ParametersContext): Array<ParameterTypeOwnership> {
@@ -195,9 +203,10 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
                     const temp: TypeOwnership = this.visit(stmt);
                     if (temp !== null && blockType === null) {
                         blockType = temp;
-                    } else if (temp !== null && blockType !== temp) {
-                        throw new Error("Inconsistent return types.")
                     }
+                    // } else if (temp !== null && blockType !== temp) {
+                    //     throw new Error("Inconsistent return types.")
+                    // }
                 } else {
                     this.visit(stmt);
                 }
@@ -245,15 +254,15 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
                 const rightType = this.visit(ctx.getChild(2)).type;
                 const operator = ctx.getChild(1).getText();
                 if (this.binop_arithmic_xs.includes(operator)) {
-                    if (leftType !== "num" || rightType !== "num") {
-                        throw new Error(`Arithmetic operator '${operator}' requires operands of type num`);
-                    }
+                    // if (leftType !== "num" || rightType !== "num") {
+                    //     throw new Error(`Arithmetic operator '${operator}' requires operands of type num`);
+                    // }
                     return {type: "num"};
                 }
                 if (this.binop_comp_xs.includes(operator)) {
-                    if (leftType !== "num" || rightType !== "num") {
-                        throw new Error(`Comparison operator '${operator}' requires operands of type num`);
-                    }
+                    // if (leftType !== "num" || rightType !== "num") {
+                    //     throw new Error(`Comparison operator '${operator}' requires operands of type num`);
+                    // }
                     return {type: "bool"};
                 }
             }
@@ -283,11 +292,11 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             }
     
             for (let i = 0; i < params_types.length; i++) {
-                if (!this.typesEqual(args_types[i], params_types[i])) {
-                    throw new Error(`Type mismatch in argument ${i + 1} for ${fn_name}. Expected ${params_types[i]} but get ${args_types[i]}`);
-                }
+                // if (!this.typesEqual(args_types[i], params_types[i])) {
+                //     throw new Error(`Type mismatch in argument ${i + 1} for ${fn_name}. Expected ${params_types[i]} but get ${args_types[i]}`);
+                // }
                 
-                 if (params_types[i].type === "string" 
+                if (params_types[i].type === "string" 
                 && args_types[i].hasOwnProperty("ownershipFlag") 
                 && args_types[i].ownershipFlag) {
                 args_types[i].ownershipFlag = false;
@@ -327,10 +336,7 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             const consq_type: TypeOwnership = this.visit(ctx.conseqStatement())
             // throw new Error(consq_type as string);
             if (ctx.altStatement()) {
-                if (this.typesEqual(consq_type, this.visit(ctx.altStatement()))) {
-                    return consq_type;
-                }
-                throw new Error("Consequential and alternative are returning different data types");
+                this.visit(ctx.altStatement())
             }
             return consq_type;
         }
