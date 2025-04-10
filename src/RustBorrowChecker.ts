@@ -148,7 +148,7 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
                     this.ownership_environment.declare(paramsNames[i], paramsTypes[i]);
                 }
             }
-            const bodyType = this.visit(ctx.blockStatement());
+            const bodyType = this.visit(ctx.functionBlockStatement());
             //Exit scope
             this.ownership_environment = old_env;
     
