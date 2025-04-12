@@ -1,6 +1,6 @@
 import { AbstractParseTreeVisitor } from "antlr4ng";
 import { RustVisitor } from "./parser/src/RustVisitor";
-import { AltStatementContext, ArgumentsContext, BlockStatementContext, ConseqStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfStatementContext, ParametersContext, PrimitiveTypeAnnotationContext, ProgramContext, ReturnStatementContext, ReturnTypeContext, RustParser, StatementContext, TypeAnnotationContext, ValidParamTypeContext, ValidTypeContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
+import { AltStatementContext, ArgumentsContext, BlockStatementContext, ConseqStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfExpressionContext, IfStatementContext, ParametersContext, PrimitiveTypeAnnotationContext, ProgramContext, ReturnStatementContext, ReturnTypeContext, RustParser, StatementContext, TypeAnnotationContext, ValidParamTypeContext, ValidTypeContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
 import { OwnershipEnvironment, ParameterTypeOwnership, TypeOwnership } from "./RustBorrowCheckerUtils";
 import { Type } from "./RustLangTypeCheckerUtils";
 
@@ -270,6 +270,11 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             if (ctx.functionCall()) {
                 return this.visit(ctx.functionCall());
             }
+
+            if (ctx.ifExpression()) {
+                return this.visit(ctx.ifExpression());
+            }
+
             throw new Error("Unknown expression type")
         }
     
@@ -338,6 +343,17 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             if (ctx.altStatement()) {
                 this.visit(ctx.altStatement())
             }
+            return consq_type;
+        }
+
+        public visitIfExpression(ctx: IfExpressionContext): TypeOwnership {
+            const cond_type: TypeOwnership = this.visit(ctx.expression(0));
+            
+            if (cond_type.type !== "bool") {
+                throw new Error("Conditional statement should be boolean")
+            }
+            
+            const consq_type: TypeOwnership = this.visit(ctx.expression(1))
             return consq_type;
         }
     

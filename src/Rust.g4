@@ -5,6 +5,7 @@ LET: 'let';
 CONST: 'const';
 FN: 'fn';
 IF: 'if';
+IFEXR: 'ifexpr';
 ELSE: 'else';
 RETURN: 'return';
 WHILE: 'while';
@@ -85,6 +86,7 @@ expression:
     | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression
     | (MINUS | NOT) expression
     | LPAREN expression RPAREN
+    | ifExpression
     ; // Type check added
 
 // return statement
@@ -102,6 +104,9 @@ whileLoop: WHILE expression blockStatement; // Type check added
 
 // If statement
 ifStatement: IF expression conseqStatement (ELSE altStatement)?;
+
+// IF expression
+ifExpression: IFEXR expression LBRACE expression RBRACE ELSE LBRACE expression RBRACE expression;
 
 conseqStatement: blockStatement;
 
