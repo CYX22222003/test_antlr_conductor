@@ -76,6 +76,9 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
   }
 
   public visitPrimitiveTypeAnnotation(ctx: PrimitiveTypeAnnotationContext): TypeOwnership {
+    if (ctx.getChild(1) === null) {
+      throw new Error("Type annotation is missing");
+    }
     const type: Type = ctx.getChild(1).getText() as Type;
     return { type: type } as TypeOwnership;
   }
