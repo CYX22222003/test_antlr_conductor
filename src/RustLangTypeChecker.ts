@@ -27,7 +27,7 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
                 }
                 return this.typesEqual(a.returnType, b.returnType);
             }
-        } 
+        }
         return false;
     }
 
@@ -129,6 +129,9 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
     public visitVariableAssignment(ctx: VariableAssignmentContext): Type {
         const target_type: Type = this.type_environment.lookup(ctx.IDENT().getText());
         const expr_type: Type = this.visit(ctx.expression());
+        if (!target_type) {
+            throw new Error(`Undefined identifier ${ctx.IDENT().getText()}`);
+        }
         if (!this.typesEqual(target_type, expr_type)) {
             throw new Error(`${ctx.IDENT().getText()}: Cannot assign a type of ${expr_type} to ${target_type}`);
         }
@@ -184,11 +187,27 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
             return "bool" as Type;
         } else if (ctx.STRING_LITERAL()) {
             return "string" as Type;
-        }else if (ctx.IDENT()) {
+        } else if (ctx.IDENT()) {
             const name: string = ctx.IDENT().getText();
             const type: Type = this.type_environment.lookup(name);
             if (!type) {
                 throw new Error(`Undefined indentifier ${name}`);
+            }
+            return type;
+        }
+
+        if ((ctx.getChildCount() === 2)
+            && (ctx.getChild(0).getText() === "&" 
+            || ctx.getChild(0).getText() === "-"
+            || ctx.getChild(0).getText() === "!"
+        )){
+            const type: Type = this.visit(ctx.getChild(1));
+            if (ctx.getChild(0).getText() === "&" && !this.typesEqual(type, "string")) {
+                throw new Error(`Expected string type but get ${type} type`);
+            }  else if (ctx.getChild(0).getText() === "!" && !this.typesEqual(type, "bool")) {
+                throw new Error(`Expected bool type but get ${type} type`);
+            } else if (ctx.getChild(0).getText() === "-" && !this.typesEqual(type, "num")) {
+                throw new Error(`Expected num type but get ${type} type`);
             }
             return type;
         }
@@ -273,11 +292,11 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
 
     public visitIfStatement(ctx: IfStatementContext): Type {
         const cond_type: Type = this.visit(ctx.expression());
-        
+
         if (!this.typesEqual(cond_type, "bool")) {
             throw new Error("Conditional statement should be boolean")
         }
-        
+
         const consq_type: Type = this.visit(ctx.conseqStatement())
         // throw new Error(consq_type as string);
         if (ctx.altStatement()) {
@@ -313,7 +332,7 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
     public visitAltStatement(ctx: AltStatementContext): Type {
         if (ctx.blockStatement())
             return this.visit(ctx.blockStatement())
-        
+
         if (ctx.ifStatement()) {
             return this.visit(ctx.ifStatement());
         }

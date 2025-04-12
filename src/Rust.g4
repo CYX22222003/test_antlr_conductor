@@ -36,6 +36,7 @@ LEQ: '<=';
 GEQ: '>=';
 NOT: '!';
 ARROW: '->';
+AMP: '&';
 
 // Identifiers and Literals
 IDENT: [a-zA-Z_][a-zA-Z0-9_]*;
@@ -81,10 +82,10 @@ expression:
     | IDENT
     | STRING_LITERAL
     | functionCall
+    | (MINUS | NOT | AMP) expression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
-    | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression
-    | (MINUS | NOT) expression
+    | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression    
     | LPAREN expression RPAREN
     | ifExpression
     ; // Type check added
@@ -119,4 +120,4 @@ typeAnnotation: COLON validType; //Type check added
 
 validType: TYPE | LPAREN (validParamType)? RPAREN ARROW validType; //Type check added
 
-validParamType: TYPE (MUT TYPE)*; 
+validParamType: TYPE (MUT TYPE)*;

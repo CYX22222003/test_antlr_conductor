@@ -3,6 +3,7 @@ import { Type } from "./RustLangTypeCheckerUtils"
 export type TypeOwnership = {
     type: Type,
     ownershipFlag?: boolean
+    referenceFlag?: boolean
     paramsTypeOwnership?: TypeOwnership[]
     returnTypeOwnership?: TypeOwnership
 }
