@@ -68,15 +68,16 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
         const type = this.visit(ctx.primitiveTypeAnnotation());
         const exprType = this.visit(ctx.expression());
 
-        if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
-            // move the ownership to the current variable
-            exprType.ownershipFlag = false;
-        }
+        console.log("constant declaration")
+        console.log("exprType", exprType)
+        console.log("type", type)
 
         if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
-            type.ownershipFlag = false;
             type.referenceFlag = true;
-        } else {
+        } else if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
+            exprType.ownershipFlag = false;
+            type.ownershipFlag = true;
+        } else if (exprType.type === "string" && !exprType.hasOwnProperty("ownershipFlag") && !exprType.ownershipFlag) {
             type.ownershipFlag = true;
         }
 
@@ -89,10 +90,15 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
         const type = this.visit(ctx.primitiveTypeAnnotation());
         const exprType = this.visit(ctx.expression());
 
-        if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
+        if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
+            type.referenceFlag = true;
+        } else if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
             exprType.ownershipFlag = false;
+            type.ownershipFlag = true;
+        } else if (exprType.type === "string" && !exprType.hasOwnProperty("ownershipFlag") && !exprType.ownershipFlag) {
+            type.ownershipFlag = true;
         }
-        type.ownershipFlag = true;
+
         this.ownership_environment.declare(name, type);
         return type;
     }
@@ -134,21 +140,11 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
         const type: TypeOwnership = this.ownership_environment.lookup(ctx.IDENT().getText());
         const name: string = ctx.IDENT().getText();
         const exprType: TypeOwnership = this.visit(ctx.expression());
-        console.log("type = ", type);
-        console.log("exprType = ", exprType);
 
         if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
-            // move the ownership to the current variable
             exprType.ownershipFlag = false;
         }
-
-        if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
-            type.ownershipFlag = false;
-            type.referenceFlag = true;
-        } else {
-            type.ownershipFlag = true;
-        }
-
+        type.ownershipFlag = true;
         return exprType;
     }
 
@@ -179,9 +175,6 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
                 if (temp !== null && blockType === null) {
                     blockType = temp;
                 }
-                // } else if (temp !== null && blockType !== temp) {
-                //     throw new Error("Inconsistent return types.")
-                // }
             } else {
                 this.visit(stmt);
             }
@@ -221,10 +214,12 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
         }
 
         if (ctx.getChildCount() === 2 && ctx.getChild(0).getText() === "&") {
-            console.log("test")
             const type: TypeOwnership = this.visit(ctx.getChild(1));
-            type.referenceFlag = true;
-            return type;
+            return {
+                type: type.type,
+                ownershipFlag: false,
+                referenceFlag: true
+            }
         }
 
         if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "(") {
@@ -236,15 +231,9 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             const rightType = this.visit(ctx.getChild(2)).type;
             const operator = ctx.getChild(1).getText();
             if (this.binop_arithmic_xs.includes(operator)) {
-                // if (leftType !== "num" || rightType !== "num") {
-                //     throw new Error(`Arithmetic operator '${operator}' requires operands of type num`);
-                // }
                 return { type: "num" };
             }
             if (this.binop_comp_xs.includes(operator)) {
-                // if (leftType !== "num" || rightType !== "num") {
-                //     throw new Error(`Comparison operator '${operator}' requires operands of type num`);
-                // }
                 return { type: "bool" };
             }
         }
@@ -268,10 +257,6 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
         const fn_name: string = ctx.functionName().IDENT().getText();
         const fn_type: TypeOwnership = this.ownership_environment.lookup(fn_name);
 
-        // if (typeof fn_type.type !== "object" || fn_type.type.type !== "function") {
-        //     throw new Error(`${ctx.functionName().IDENT().getText()} is not callable`);
-        // }
-
         const params_types = fn_type.paramsTypeOwnership;
         const args_types = this.checkCallArguments(ctx.arguments());
         if (args_types.length !== params_types.length) {
@@ -279,13 +264,7 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
         }
 
         for (let i = 0; i < params_types.length; i++) {
-            // if (!this.typesEqual(args_types[i], params_types[i])) {
-            //     throw new Error(`Type mismatch in argument ${i + 1} for ${fn_name}. Expected ${params_types[i]} but get ${args_types[i]}`);
-            // }
-
-            if (params_types[i].type === "string"
-                && args_types[i].hasOwnProperty("ownershipFlag")
-                && args_types[i].ownershipFlag) {
+            if (params_types[i].type === "string" && args_types[i].hasOwnProperty("ownershipFlag") && args_types[i].ownershipFlag) {
                 args_types[i].ownershipFlag = false;
                 params_types[i].ownershipFlag = true;
             }
