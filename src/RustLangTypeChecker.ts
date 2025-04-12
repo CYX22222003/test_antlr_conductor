@@ -129,6 +129,9 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
     public visitVariableAssignment(ctx: VariableAssignmentContext): Type {
         const target_type: Type = this.type_environment.lookup(ctx.IDENT().getText());
         const expr_type: Type = this.visit(ctx.expression());
+        if (!target_type) {
+            throw new Error(`Undefined identifier ${ctx.IDENT().getText()}`);
+        }
         if (!this.typesEqual(target_type, expr_type)) {
             throw new Error(`${ctx.IDENT().getText()}: Cannot assign a type of ${expr_type} to ${target_type}`);
         }
@@ -184,7 +187,7 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
             return "bool" as Type;
         } else if (ctx.STRING_LITERAL()) {
             return "string" as Type;
-        }else if (ctx.IDENT()) {
+        } else if (ctx.IDENT()) {
             const name: string = ctx.IDENT().getText();
             const type: Type = this.type_environment.lookup(name);
             if (!type) {
