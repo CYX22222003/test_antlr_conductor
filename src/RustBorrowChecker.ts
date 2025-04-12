@@ -68,10 +68,6 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
         const type = this.visit(ctx.primitiveTypeAnnotation());
         const exprType = this.visit(ctx.expression());
 
-        console.log("constant declaration")
-        console.log("exprType", exprType)
-        console.log("type", type)
-
         if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
             type.referenceFlag = true;
         } else if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
