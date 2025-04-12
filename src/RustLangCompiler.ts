@@ -182,16 +182,12 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
         const locals = this.scan_declarations(ctx.statement());
         // console.log(locals.length > 0);
         let current = this.compile_time_environment
-        if (locals.length > 0) {
-            this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals, num: locals.length }
-        }
+        this.instrs[this.wc++] = { tag: "ENTER_SCOPE", syms: locals, num: locals.length }
         // Extend current compile_time_environment
         this.compile_time_environment = this.compile_time_environment_extend(locals, current)
         const stmts = ctx.statement();
         this.handleStatements(stmts)
-        if (locals.length > 0) {
-            this.instrs[this.wc++] = { tag: "EXIT_SCOPE" }
-        }
+        this.instrs[this.wc++] = { tag: "EXIT_SCOPE" }
         this.compile_time_environment = current;
     }
 

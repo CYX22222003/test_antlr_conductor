@@ -213,7 +213,11 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
             return type;
         }
 
-        if (ctx.getChildCount() === 2 && ctx.getChild(0).getText() === "&") {
+        if (ctx.getChildCount() === 2 
+            && (ctx.getChild(0).getText() === "&"
+                || ctx.getChild(0).getText() === "-"
+                || ctx.getChild(0).getText() === "!"
+            )) {
             const type: TypeOwnership = this.visit(ctx.getChild(1));
             return {
                 type: type.type,

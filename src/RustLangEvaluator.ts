@@ -108,7 +108,9 @@ export class RustEvaluator extends BasicEvaluator {
             // Evaluate the parsed tree
             // const result = this.visitor.visit(tree);
             typeChecker.visit(tree);
+            this.conductor.sendOutput("Type check successful!");
             onwershipChecker.visit(tree);
+            this.conductor.sendOutput("Ownership check successful!")
             compiler.visit(tree);
             
             const idealizedVM = new RustIdealizedVM(compiler.getInstructions());
