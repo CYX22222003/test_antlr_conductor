@@ -27,7 +27,7 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
                 }
                 return this.typesEqual(a.returnType, b.returnType);
             }
-        } 
+        }
         return false;
     }
 
@@ -193,6 +193,10 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
             return type;
         }
 
+        if (ctx.getChildCount() === 2 && ctx.getChild(0).getText() === "&") {
+            return this.visit(ctx.getChild(1));
+        }
+
         if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "(") {
             return this.visit(ctx.getChild(1));
         }
@@ -273,11 +277,11 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
 
     public visitIfStatement(ctx: IfStatementContext): Type {
         const cond_type: Type = this.visit(ctx.expression());
-        
+
         if (!this.typesEqual(cond_type, "bool")) {
             throw new Error("Conditional statement should be boolean")
         }
-        
+
         const consq_type: Type = this.visit(ctx.conseqStatement())
         // throw new Error(consq_type as string);
         if (ctx.altStatement()) {
@@ -313,7 +317,7 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
     public visitAltStatement(ctx: AltStatementContext): Type {
         if (ctx.blockStatement())
             return this.visit(ctx.blockStatement())
-        
+
         if (ctx.ifStatement()) {
             return this.visit(ctx.ifStatement());
         }

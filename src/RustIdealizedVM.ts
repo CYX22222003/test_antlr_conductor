@@ -50,7 +50,7 @@ class RustIdealizedVM {
     private default_owner_frame = -1;
     private default_owner_value = -1;
     // string
-    // [1 byte tag, 2 byte address of string in the str pool, 2 bytes unused, 
+    // [1 byte tag, 2 byte address of string in the str pool, 2 bytes unused,
     // 2 bytes #children, 1 byte unused]
 
     // alternative [1 byte tag, 2 byte address, 5 bytes unused]
@@ -229,7 +229,7 @@ class RustIdealizedVM {
     private JS_value_to_address = x => {
         // console.log("this is x from JS_value_to_address: ", x, " with type of", typeof x)
         return x === undefined
-            ? this.Undefined 
+            ? this.Undefined
             : typeof x === "boolean"
             ? (x ? this.True : this.False)
             : typeof x === "number"
@@ -293,7 +293,8 @@ class RustIdealizedVM {
 
     private unop_microcode = {
         '-': x => - x,
-        '!': x => !x
+        '!': x => !x,
+        '&': x => x
     }
 
     private binop_microcode = {
@@ -410,7 +411,7 @@ class RustIdealizedVM {
                 const popped_value = this.OS.pop()
                 if (this.HEAP.heap_get_tag(popped_value) === Tag.String_tag) {
                     this.heap_set_String_owner_frame_addr(frame_address, i, popped_value)
-                } 
+                }
                 this.HEAP.heap_set_child(frame_address, i, popped_value);
             }
             this.OS.pop(); // pop fun
