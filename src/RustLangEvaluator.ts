@@ -108,7 +108,7 @@ export class RustEvaluator extends BasicEvaluator {
             // Evaluate the parsed tree
             // const result = this.visitor.visit(tree);
             typeChecker.visit(tree);
-            onwershipChecker.visit(tree);
+            //onwershipChecker.visit(tree);
             compiler.visit(tree);
             
             const idealizedVM = new RustIdealizedVM(compiler.getInstructions());

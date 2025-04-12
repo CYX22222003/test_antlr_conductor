@@ -342,11 +342,21 @@ class RustBorrowChecker extends AbstractParseTreeVisitor<TypeOwnership> implemen
         }
     
         public visitConseqStatement(ctx: ConseqStatementContext): TypeOwnership {
-            return this.visit(ctx.blockStatement());
+            if (ctx.blockStatement())
+                return this.visit(ctx.blockStatement());
+            return null;
         }
     
         public visitAltStatement(ctx: AltStatementContext): TypeOwnership {
-            return this.visit(ctx.blockStatement())
+            if (ctx.blockStatement()) {
+                return this.visit(ctx.blockStatement())
+            }
+
+            if (ctx.ifStatement()) {
+                return this.visit(ctx.ifStatement());
+            }
+            
+            return null;
         }
 }
 

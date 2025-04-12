@@ -105,7 +105,7 @@ ifStatement: IF expression conseqStatement (ELSE altStatement)?;
 
 conseqStatement: blockStatement;
 
-altStatement: blockStatement;
+altStatement: blockStatement | ifStatement;
 
 //Valid types
 primitiveTypeAnnotation: COLON TYPE; //Type check added

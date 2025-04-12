@@ -286,10 +286,18 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
     }
 
     public visitConseqStatement(ctx: ConseqStatementContext): Type {
-        return this.visit(ctx.blockStatement());
+        if (ctx.blockStatement())
+            return this.visit(ctx.blockStatement());
+        return null;
     }
 
     public visitAltStatement(ctx: AltStatementContext): Type {
-        return this.visit(ctx.blockStatement())
+        if (ctx.blockStatement())
+            return this.visit(ctx.blockStatement())
+        
+        if (ctx.ifStatement()) {
+            return this.visit(ctx.ifStatement());
+        }
+        return null;
     }
 }
