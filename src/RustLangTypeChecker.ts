@@ -1,6 +1,6 @@
 import { AbstractParseTreeVisitor } from "antlr4ng";
 import { RustVisitor } from "./parser/src/RustVisitor";
-import { AltStatementContext, ArgumentsContext, BlockStatementContext, ConseqStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfStatementContext, ParametersContext, PrimitiveTypeAnnotationContext, ProgramContext, ReturnStatementContext, ReturnTypeContext, RustParser, StatementContext, TypeAnnotationContext, ValidParamTypeContext, ValidTypeContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
+import { AltStatementContext, ArgumentsContext, BlockStatementContext, ConseqStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfExpressionContext, IfStatementContext, ParametersContext, PrimitiveTypeAnnotationContext, ProgramContext, ReturnStatementContext, ReturnTypeContext, RustParser, StatementContext, TypeAnnotationContext, ValidParamTypeContext, ValidTypeContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
 import { Type, ParameterType, Environment } from "./RustLangTypeCheckerUtils";
 
 export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> implements RustVisitor<Type> {
@@ -218,6 +218,10 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
         if (ctx.functionCall()) {
             return this.visit(ctx.functionCall());
         }
+
+        if (ctx.ifExpression()) {
+            return this.visit(ctx.ifExpression());
+        }
         throw new Error("Unknown expression type")
     }
 
@@ -280,6 +284,21 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
             if (this.typesEqual(consq_type, this.visit(ctx.altStatement()))) {
                 return consq_type;
             }
+            throw new Error("Consequential and alternative are returning different data types");
+        }
+        return consq_type;
+    }
+
+    public visitIfExpression(ctx: IfExpressionContext): Type {
+        const cond_type: Type = this.visit(ctx.expression(0));
+        if (!this.typesEqual(cond_type, "bool")) {
+            throw new Error("Conditional statement should be boolean")
+        }
+
+        const consq_type: Type = this.visit(ctx.expression(1));
+        const alt_type: Type = this.visit(ctx.expression(2));
+        // throw new Error(consq_type as string);
+        if (!this.typesEqual(consq_type, alt_type)) {
             throw new Error("Consequential and alternative are returning different data types");
         }
         return consq_type;

@@ -1,6 +1,6 @@
-import { AbstractParseTreeVisitor } from "antlr4ng";
+import { AbstractParseTreeVisitor, ParseTree } from "antlr4ng";
 import { RustVisitor } from "./parser/src/RustVisitor";
-import { BlockStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfStatementContext, ParametersContext, PrimitiveTypeAnnotationContext, ProgramContext, ReturnStatementContext, ReturnTypeContext, RustParser, StatementContext, TypeAnnotationContext, ValidParamTypeContext, ValidTypeContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
+import { BlockStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfExpressionContext, IfStatementContext, ParametersContext, PrimitiveTypeAnnotationContext, ProgramContext, ReturnStatementContext, ReturnTypeContext, RustParser, StatementContext, TypeAnnotationContext, ValidParamTypeContext, ValidTypeContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
 
 export type Instruction = {
     tag: string
@@ -211,6 +211,18 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
         goto_instr["addr"] = this.wc;
     }
 
+    public visitIfExpression(ctx: IfExpressionContext): void{
+        this.visit(ctx.expression(0));
+        const jump_on_false_instr = { "tag": "JOF" };
+        this.instrs[this.wc++] = jump_on_false_instr;
+        this.visit(ctx.expression(1));
+        const goto_instr = { "tag": "GOTO" };
+        this.instrs[this.wc++] = goto_instr;
+        jump_on_false_instr["addr"] = this.wc;
+        this.visit(ctx.expression(2));
+        goto_instr["addr"] = this.wc;
+    }
+
     public visitWhileLoop(ctx: WhileLoopContext) {
         const loop_start = this.wc;
         this.visit(ctx.expression());
@@ -239,9 +251,11 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
               let rawText = ctx.getChild(0).getText();
               let unquoted = rawText.slice(1, -1);
               this.instrs[this.wc++] = { tag: "LDC", val: unquoted };
-            } else {
-                console.log("visit function call");
+            } else if (ctx.functionCall()){
+                // console.log("visit function call");
                 this.visit(ctx.functionCall());
+            } else if (ctx.ifExpression()) {
+                this.visit(ctx.ifExpression());
             }
         } else if (count === 2) {
             this.visit(ctx.getChild(1));

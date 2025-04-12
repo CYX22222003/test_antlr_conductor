@@ -20,6 +20,7 @@ import { FunctionNameContext } from "./RustParser.js";
 import { ArgumentsContext } from "./RustParser.js";
 import { WhileLoopContext } from "./RustParser.js";
 import { IfStatementContext } from "./RustParser.js";
+import { IfExpressionContext } from "./RustParser.js";
 import { ConseqStatementContext } from "./RustParser.js";
 import { AltStatementContext } from "./RustParser.js";
 import { PrimitiveTypeAnnotationContext } from "./RustParser.js";
@@ -138,6 +139,12 @@ export class RustVisitor<Result> extends AbstractParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitIfStatement?: (ctx: IfStatementContext) => Result;
+    /**
+     * Visit a parse tree produced by `RustParser.ifExpression`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitIfExpression?: (ctx: IfExpressionContext) => Result;
     /**
      * Visit a parse tree produced by `RustParser.conseqStatement`.
      * @param ctx the parse tree
