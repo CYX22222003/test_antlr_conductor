@@ -1205,8 +1205,6 @@ public class RustParser extends Parser {
 			expression(0);
 			setState(191);
 			match(RBRACE);
-			setState(192);
-			expression(0);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1237,7 +1235,7 @@ public class RustParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(194);
+			setState(193);
 			blockStatement();
 			}
 		}
@@ -1270,20 +1268,20 @@ public class RustParser extends Parser {
 		AltStatementContext _localctx = new AltStatementContext(_ctx, getState());
 		enterRule(_localctx, 38, RULE_altStatement);
 		try {
-			setState(198);
+			setState(197);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case LBRACE:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(196);
+				setState(195);
 				blockStatement();
 				}
 				break;
 			case IF:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(197);
+				setState(196);
 				ifStatement();
 				}
 				break;
@@ -1318,9 +1316,9 @@ public class RustParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(200);
+			setState(199);
 			match(COLON);
-			setState(201);
+			setState(200);
 			match(TYPE);
 			}
 		}
@@ -1353,9 +1351,9 @@ public class RustParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(203);
+			setState(202);
 			match(COLON);
-			setState(204);
+			setState(203);
 			validType();
 			}
 		}
@@ -1393,36 +1391,36 @@ public class RustParser extends Parser {
 		enterRule(_localctx, 44, RULE_validType);
 		int _la;
 		try {
-			setState(214);
+			setState(213);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case TYPE:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(206);
+				setState(205);
 				match(TYPE);
 				}
 				break;
 			case LPAREN:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(207);
+				setState(206);
 				match(LPAREN);
-				setState(209);
+				setState(208);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==TYPE) {
 					{
-					setState(208);
+					setState(207);
 					validParamType();
 					}
 				}
 
-				setState(211);
+				setState(210);
 				match(RPAREN);
-				setState(212);
+				setState(211);
 				match(ARROW);
-				setState(213);
+				setState(212);
 				validType();
 				}
 				break;
@@ -1464,21 +1462,21 @@ public class RustParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(216);
+			setState(215);
 			match(TYPE);
-			setState(221);
+			setState(220);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==MUT) {
 				{
 				{
-				setState(217);
+				setState(216);
 				match(MUT);
-				setState(218);
+				setState(217);
 				match(TYPE);
 				}
 				}
-				setState(223);
+				setState(222);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -1515,7 +1513,7 @@ public class RustParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001(\u00e1\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0004\u0001(\u00e0\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
 		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0002"+
 		"\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007\u0007\u0007\u0002"+
 		"\b\u0007\b\u0002\t\u0007\t\u0002\n\u0007\n\u0002\u000b\u0007\u000b\u0002"+
@@ -1543,26 +1541,26 @@ public class RustParser extends Parser {
 		"\u0001\u000f\u0001\u000f\u0001\u000f\u0001\u000f\u0001\u0010\u0001\u0010"+
 		"\u0001\u0010\u0001\u0010\u0001\u0010\u0003\u0010\u00b6\b\u0010\u0001\u0011"+
 		"\u0001\u0011\u0001\u0011\u0001\u0011\u0001\u0011\u0001\u0011\u0001\u0011"+
-		"\u0001\u0011\u0001\u0011\u0001\u0011\u0001\u0011\u0001\u0012\u0001\u0012"+
-		"\u0001\u0013\u0001\u0013\u0003\u0013\u00c7\b\u0013\u0001\u0014\u0001\u0014"+
-		"\u0001\u0014\u0001\u0015\u0001\u0015\u0001\u0015\u0001\u0016\u0001\u0016"+
-		"\u0001\u0016\u0003\u0016\u00d2\b\u0016\u0001\u0016\u0001\u0016\u0001\u0016"+
-		"\u0003\u0016\u00d7\b\u0016\u0001\u0017\u0001\u0017\u0001\u0017\u0005\u0017"+
-		"\u00dc\b\u0017\n\u0017\f\u0017\u00df\t\u0017\u0001\u0017\u0000\u0001\u0014"+
-		"\u0018\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018"+
-		"\u001a\u001c\u001e \"$&(*,.\u0000\u0004\u0003\u0000\u0017\u0017  \"\""+
-		"\u0001\u0000\u0018\u0019\u0001\u0000\u0016\u0017\u0001\u0000\u001a\u001f"+
-		"\u00e5\u00003\u0001\u0000\u0000\u0000\u0002A\u0001\u0000\u0000\u0000\u0004"+
-		"C\u0001\u0000\u0000\u0000\u0006N\u0001\u0000\u0000\u0000\bS\u0001\u0000"+
+		"\u0001\u0011\u0001\u0011\u0001\u0011\u0001\u0012\u0001\u0012\u0001\u0013"+
+		"\u0001\u0013\u0003\u0013\u00c6\b\u0013\u0001\u0014\u0001\u0014\u0001\u0014"+
+		"\u0001\u0015\u0001\u0015\u0001\u0015\u0001\u0016\u0001\u0016\u0001\u0016"+
+		"\u0003\u0016\u00d1\b\u0016\u0001\u0016\u0001\u0016\u0001\u0016\u0003\u0016"+
+		"\u00d6\b\u0016\u0001\u0017\u0001\u0017\u0001\u0017\u0005\u0017\u00db\b"+
+		"\u0017\n\u0017\f\u0017\u00de\t\u0017\u0001\u0017\u0000\u0001\u0014\u0018"+
+		"\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018\u001a"+
+		"\u001c\u001e \"$&(*,.\u0000\u0004\u0003\u0000\u0017\u0017  \"\"\u0001"+
+		"\u0000\u0018\u0019\u0001\u0000\u0016\u0017\u0001\u0000\u001a\u001f\u00e4"+
+		"\u00003\u0001\u0000\u0000\u0000\u0002A\u0001\u0000\u0000\u0000\u0004C"+
+		"\u0001\u0000\u0000\u0000\u0006N\u0001\u0000\u0000\u0000\bS\u0001\u0000"+
 		"\u0000\u0000\n]\u0001\u0000\u0000\u0000\f`\u0001\u0000\u0000\u0000\u000e"+
 		"g\u0001\u0000\u0000\u0000\u0010n\u0001\u0000\u0000\u0000\u0012w\u0001"+
 		"\u0000\u0000\u0000\u0014\u0087\u0001\u0000\u0000\u0000\u0016\u0097\u0001"+
 		"\u0000\u0000\u0000\u0018\u009b\u0001\u0000\u0000\u0000\u001a\u00a2\u0001"+
 		"\u0000\u0000\u0000\u001c\u00a4\u0001\u0000\u0000\u0000\u001e\u00ac\u0001"+
 		"\u0000\u0000\u0000 \u00b0\u0001\u0000\u0000\u0000\"\u00b7\u0001\u0000"+
-		"\u0000\u0000$\u00c2\u0001\u0000\u0000\u0000&\u00c6\u0001\u0000\u0000\u0000"+
-		"(\u00c8\u0001\u0000\u0000\u0000*\u00cb\u0001\u0000\u0000\u0000,\u00d6"+
-		"\u0001\u0000\u0000\u0000.\u00d8\u0001\u0000\u0000\u000002\u0003\u0002"+
+		"\u0000\u0000$\u00c1\u0001\u0000\u0000\u0000&\u00c5\u0001\u0000\u0000\u0000"+
+		"(\u00c7\u0001\u0000\u0000\u0000*\u00ca\u0001\u0000\u0000\u0000,\u00d5"+
+		"\u0001\u0000\u0000\u0000.\u00d7\u0001\u0000\u0000\u000002\u0003\u0002"+
 		"\u0001\u000010\u0001\u0000\u0000\u000025\u0001\u0000\u0000\u000031\u0001"+
 		"\u0000\u0000\u000034\u0001\u0000\u0000\u000046\u0001\u0000\u0000\u0000"+
 		"53\u0001\u0000\u0000\u000067\u0005\u0000\u0000\u00017\u0001\u0001\u0000"+
@@ -1631,25 +1629,25 @@ public class RustParser extends Parser {
 		"\u0000\u00b8\u00b9\u0003\u0014\n\u0000\u00b9\u00ba\u0005\u0014\u0000\u0000"+
 		"\u00ba\u00bb\u0003\u0014\n\u0000\u00bb\u00bc\u0005\u0015\u0000\u0000\u00bc"+
 		"\u00bd\u0005\u0006\u0000\u0000\u00bd\u00be\u0005\u0014\u0000\u0000\u00be"+
-		"\u00bf\u0003\u0014\n\u0000\u00bf\u00c0\u0005\u0015\u0000\u0000\u00c0\u00c1"+
-		"\u0003\u0014\n\u0000\u00c1#\u0001\u0000\u0000\u0000\u00c2\u00c3\u0003"+
-		"\u0010\b\u0000\u00c3%\u0001\u0000\u0000\u0000\u00c4\u00c7\u0003\u0010"+
-		"\b\u0000\u00c5\u00c7\u0003 \u0010\u0000\u00c6\u00c4\u0001\u0000\u0000"+
-		"\u0000\u00c6\u00c5\u0001\u0000\u0000\u0000\u00c7\'\u0001\u0000\u0000\u0000"+
-		"\u00c8\u00c9\u0005\u0010\u0000\u0000\u00c9\u00ca\u0005\u000b\u0000\u0000"+
-		"\u00ca)\u0001\u0000\u0000\u0000\u00cb\u00cc\u0005\u0010\u0000\u0000\u00cc"+
-		"\u00cd\u0003,\u0016\u0000\u00cd+\u0001\u0000\u0000\u0000\u00ce\u00d7\u0005"+
-		"\u000b\u0000\u0000\u00cf\u00d1\u0005\u0012\u0000\u0000\u00d0\u00d2\u0003"+
-		".\u0017\u0000\u00d1\u00d0\u0001\u0000\u0000\u0000\u00d1\u00d2\u0001\u0000"+
-		"\u0000\u0000\u00d2\u00d3\u0001\u0000\u0000\u0000\u00d3\u00d4\u0005\u0013"+
-		"\u0000\u0000\u00d4\u00d5\u0005!\u0000\u0000\u00d5\u00d7\u0003,\u0016\u0000"+
-		"\u00d6\u00ce\u0001\u0000\u0000\u0000\u00d6\u00cf\u0001\u0000\u0000\u0000"+
-		"\u00d7-\u0001\u0000\u0000\u0000\u00d8\u00dd\u0005\u000b\u0000\u0000\u00d9"+
-		"\u00da\u0005\f\u0000\u0000\u00da\u00dc\u0005\u000b\u0000\u0000\u00db\u00d9"+
-		"\u0001\u0000\u0000\u0000\u00dc\u00df\u0001\u0000\u0000\u0000\u00dd\u00db"+
-		"\u0001\u0000\u0000\u0000\u00dd\u00de\u0001\u0000\u0000\u0000\u00de/\u0001"+
-		"\u0000\u0000\u0000\u00df\u00dd\u0001\u0000\u0000\u0000\u000f3AGZr\u0087"+
-		"\u0092\u0094\u009e\u00a9\u00b5\u00c6\u00d1\u00d6\u00dd";
+		"\u00bf\u0003\u0014\n\u0000\u00bf\u00c0\u0005\u0015\u0000\u0000\u00c0#"+
+		"\u0001\u0000\u0000\u0000\u00c1\u00c2\u0003\u0010\b\u0000\u00c2%\u0001"+
+		"\u0000\u0000\u0000\u00c3\u00c6\u0003\u0010\b\u0000\u00c4\u00c6\u0003 "+
+		"\u0010\u0000\u00c5\u00c3\u0001\u0000\u0000\u0000\u00c5\u00c4\u0001\u0000"+
+		"\u0000\u0000\u00c6\'\u0001\u0000\u0000\u0000\u00c7\u00c8\u0005\u0010\u0000"+
+		"\u0000\u00c8\u00c9\u0005\u000b\u0000\u0000\u00c9)\u0001\u0000\u0000\u0000"+
+		"\u00ca\u00cb\u0005\u0010\u0000\u0000\u00cb\u00cc\u0003,\u0016\u0000\u00cc"+
+		"+\u0001\u0000\u0000\u0000\u00cd\u00d6\u0005\u000b\u0000\u0000\u00ce\u00d0"+
+		"\u0005\u0012\u0000\u0000\u00cf\u00d1\u0003.\u0017\u0000\u00d0\u00cf\u0001"+
+		"\u0000\u0000\u0000\u00d0\u00d1\u0001\u0000\u0000\u0000\u00d1\u00d2\u0001"+
+		"\u0000\u0000\u0000\u00d2\u00d3\u0005\u0013\u0000\u0000\u00d3\u00d4\u0005"+
+		"!\u0000\u0000\u00d4\u00d6\u0003,\u0016\u0000\u00d5\u00cd\u0001\u0000\u0000"+
+		"\u0000\u00d5\u00ce\u0001\u0000\u0000\u0000\u00d6-\u0001\u0000\u0000\u0000"+
+		"\u00d7\u00dc\u0005\u000b\u0000\u0000\u00d8\u00d9\u0005\f\u0000\u0000\u00d9"+
+		"\u00db\u0005\u000b\u0000\u0000\u00da\u00d8\u0001\u0000\u0000\u0000\u00db"+
+		"\u00de\u0001\u0000\u0000\u0000\u00dc\u00da\u0001\u0000\u0000\u0000\u00dc"+
+		"\u00dd\u0001\u0000\u0000\u0000\u00dd/\u0001\u0000\u0000\u0000\u00de\u00dc"+
+		"\u0001\u0000\u0000\u0000\u000f3AGZr\u0087\u0092\u0094\u009e\u00a9\u00b5"+
+		"\u00c5\u00d0\u00d5\u00dc";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

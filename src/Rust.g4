@@ -107,7 +107,7 @@ whileLoop: WHILE expression blockStatement; // Type check added
 ifStatement: IF expression conseqStatement (ELSE altStatement)?;
 
 // IF expression
-ifExpression: IFEXR expression LBRACE expression RBRACE ELSE LBRACE expression RBRACE expression;
+ifExpression: IFEXR expression LBRACE expression RBRACE ELSE LBRACE expression RBRACE;
 
 conseqStatement: blockStatement;
 
