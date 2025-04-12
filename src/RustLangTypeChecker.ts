@@ -196,12 +196,20 @@ export default class RustLangTypeChecker extends AbstractParseTreeVisitor<Type> 
             return type;
         }
 
-        if (ctx.getChildCount() === 2 
-        && (ctx.getChild(0).getText() === "&" 
+        if ((ctx.getChildCount() === 2)
+            && (ctx.getChild(0).getText() === "&" 
             || ctx.getChild(0).getText() === "-"
             || ctx.getChild(0).getText() === "!"
-        ) ) {
-            return this.visit(ctx.getChild(1));
+        )){
+            const type: Type = this.visit(ctx.getChild(1));
+            if (ctx.getChild(0).getText() === "&" && !this.typesEqual(type, "string")) {
+                throw new Error(`Expected string type but get ${type} type`);
+            }  else if (ctx.getChild(0).getText() === "!" && !this.typesEqual(type, "bool")) {
+                throw new Error(`Expected bool type but get ${type} type`);
+            } else if (ctx.getChild(0).getText() === "-" && !this.typesEqual(type, "num")) {
+                throw new Error(`Expected num type but get ${type} type`);
+            }
+            return type;
         }
 
         if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "(") {

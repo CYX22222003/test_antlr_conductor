@@ -578,7 +578,7 @@ export class RustParser extends antlr.Parser {
                     this.consume();
                 }
                 this.state = 129;
-                this.expression(3);
+                this.expression(6);
                 }
                 break;
             case 7:
@@ -617,8 +617,8 @@ export class RustParser extends antlr.Parser {
                         localContext = new ExpressionContext(parentContext, parentState);
                         this.pushNewRecursionContext(localContext, _startState, RustParser.RULE_expression);
                         this.state = 137;
-                        if (!(this.precpred(this.context, 6))) {
-                            throw this.createFailedPredicateException("this.precpred(this.context, 6)");
+                        if (!(this.precpred(this.context, 5))) {
+                            throw this.createFailedPredicateException("this.precpred(this.context, 5)");
                         }
                         this.state = 138;
                         _la = this.tokenStream.LA(1);
@@ -630,7 +630,7 @@ export class RustParser extends antlr.Parser {
                             this.consume();
                         }
                         this.state = 139;
-                        this.expression(7);
+                        this.expression(6);
                         }
                         break;
                     case 2:
@@ -638,8 +638,8 @@ export class RustParser extends antlr.Parser {
                         localContext = new ExpressionContext(parentContext, parentState);
                         this.pushNewRecursionContext(localContext, _startState, RustParser.RULE_expression);
                         this.state = 140;
-                        if (!(this.precpred(this.context, 5))) {
-                            throw this.createFailedPredicateException("this.precpred(this.context, 5)");
+                        if (!(this.precpred(this.context, 4))) {
+                            throw this.createFailedPredicateException("this.precpred(this.context, 4)");
                         }
                         this.state = 141;
                         _la = this.tokenStream.LA(1);
@@ -651,7 +651,7 @@ export class RustParser extends antlr.Parser {
                             this.consume();
                         }
                         this.state = 142;
-                        this.expression(6);
+                        this.expression(5);
                         }
                         break;
                     case 3:
@@ -659,8 +659,8 @@ export class RustParser extends antlr.Parser {
                         localContext = new ExpressionContext(parentContext, parentState);
                         this.pushNewRecursionContext(localContext, _startState, RustParser.RULE_expression);
                         this.state = 143;
-                        if (!(this.precpred(this.context, 4))) {
-                            throw this.createFailedPredicateException("this.precpred(this.context, 4)");
+                        if (!(this.precpred(this.context, 3))) {
+                            throw this.createFailedPredicateException("this.precpred(this.context, 3)");
                         }
                         this.state = 144;
                         _la = this.tokenStream.LA(1);
@@ -672,7 +672,7 @@ export class RustParser extends antlr.Parser {
                             this.consume();
                         }
                         this.state = 145;
-                        this.expression(5);
+                        this.expression(4);
                         }
                         break;
                     }
@@ -1150,11 +1150,11 @@ export class RustParser extends antlr.Parser {
     private expression_sempred(localContext: ExpressionContext | null, predIndex: number): boolean {
         switch (predIndex) {
         case 0:
-            return this.precpred(this.context, 6);
-        case 1:
             return this.precpred(this.context, 5);
-        case 2:
+        case 1:
             return this.precpred(this.context, 4);
+        case 2:
+            return this.precpred(this.context, 3);
         }
         return true;
     }
@@ -1206,13 +1206,13 @@ export class RustParser extends antlr.Parser {
         1,0,0,0,115,117,1,0,0,0,116,114,1,0,0,0,117,118,5,21,0,0,118,17,
         1,0,0,0,119,120,3,20,10,0,120,121,5,15,0,0,121,19,1,0,0,0,122,123,
         6,10,-1,0,123,136,5,36,0,0,124,136,5,10,0,0,125,136,5,35,0,0,126,
-        136,5,37,0,0,127,136,3,24,12,0,128,129,7,0,0,0,129,136,3,20,10,3,
+        136,5,37,0,0,127,136,3,24,12,0,128,129,7,0,0,0,129,136,3,20,10,6,
         130,131,5,18,0,0,131,132,3,20,10,0,132,133,5,19,0,0,133,136,1,0,
         0,0,134,136,3,34,17,0,135,122,1,0,0,0,135,124,1,0,0,0,135,125,1,
         0,0,0,135,126,1,0,0,0,135,127,1,0,0,0,135,128,1,0,0,0,135,130,1,
-        0,0,0,135,134,1,0,0,0,136,148,1,0,0,0,137,138,10,6,0,0,138,139,7,
-        1,0,0,139,147,3,20,10,7,140,141,10,5,0,0,141,142,7,2,0,0,142,147,
-        3,20,10,6,143,144,10,4,0,0,144,145,7,3,0,0,145,147,3,20,10,5,146,
+        0,0,0,135,134,1,0,0,0,136,148,1,0,0,0,137,138,10,5,0,0,138,139,7,
+        1,0,0,139,147,3,20,10,6,140,141,10,4,0,0,141,142,7,2,0,0,142,147,
+        3,20,10,5,143,144,10,3,0,0,144,145,7,3,0,0,145,147,3,20,10,4,146,
         137,1,0,0,0,146,140,1,0,0,0,146,143,1,0,0,0,147,150,1,0,0,0,148,
         146,1,0,0,0,148,149,1,0,0,0,149,21,1,0,0,0,150,148,1,0,0,0,151,152,
         5,7,0,0,152,153,3,20,10,0,153,154,5,15,0,0,154,23,1,0,0,0,155,156,

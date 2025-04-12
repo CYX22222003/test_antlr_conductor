@@ -82,10 +82,10 @@ expression:
     | IDENT
     | STRING_LITERAL
     | functionCall
+    | (MINUS | NOT | AMP) expression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
-    | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression
-    | (MINUS | NOT | AMP) expression
+    | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression    
     | LPAREN expression RPAREN
     | ifExpression
     ; // Type check added
