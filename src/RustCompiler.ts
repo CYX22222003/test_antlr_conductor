@@ -18,7 +18,7 @@ type ParameterType = {
     type: string
 }
 
-class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVisitor<void> {
+class RustCompiler extends AbstractParseTreeVisitor<void> implements RustVisitor<void> {
     private wc: number = 0;
     private instrs: Instruction[] = [];
     private compile_time_environment = [[]]; // compile-time frames only need symbols, each environment is an array
@@ -115,7 +115,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     }
 
     public visitFunctionDeclaration(ctx: FunctionDeclarationContext): void {
-        const paramsInfo = ctx.parameters() 
+        const paramsInfo = ctx.parameters()
             ? this.visitParameters(ctx.parameters()) as Array<ParameterType>
             : [];
         let params = paramsInfo.map(p => p.name);
@@ -201,7 +201,7 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
         jump_on_false_instr["addr"] = this.wc;
         if (ctx.altStatement())
             this.visit(ctx.altStatement());
-        
+
         if (!ctx.altStatement())
             this.instrs[this.wc++] = {"tag": "LDC", "val": undefined};
         goto_instr["addr"] = this.wc;
@@ -349,4 +349,4 @@ class RustLangCompiler extends AbstractParseTreeVisitor<void> implements RustVis
     }
 }
 
-export default RustLangCompiler;
+export default RustCompiler;
