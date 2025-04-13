@@ -66,4 +66,8 @@ export class OwnershipEnvironment {
       return null;
     }
   }
+
+  public isInClosestEnvironment(name: string): boolean {
+    return this.symbols.has(name);
+  }
 }

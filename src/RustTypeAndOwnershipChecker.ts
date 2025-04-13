@@ -19,6 +19,7 @@ import {
   ProgramContext,
   ReturnStatementContext,
   ReturnTypeContext,
+  StatementContext,
   TypeAnnotationContext,
   ValidTypeContext,
   VariableAssignmentContext,
@@ -26,6 +27,7 @@ import {
   WhileLoopContext,
 } from "./parser/src/RustParser";
 import { OwnershipEnvironment, ParameterTypeOwnership, TypeOwnership, Type } from "./RustTypeAndOwnershipCheckerUtils";
+import { createGzip } from "zlib";
 
 class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership> implements RustVisitor<TypeOwnership> {
   public ownership_environment: OwnershipEnvironment = new OwnershipEnvironment();
@@ -200,6 +202,16 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`${name}: Cannot assign type of ${exprType.type} to ${type.type}`);
     }
 
+    
+    if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
+      && exprType.type === "string" 
+      && !this.ownership_environment
+        .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
+      throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
+    }
+    // console.log("Is in the closest environment " 
+    //  + this.ownership_environment.isInClosestEnvironment(ctx.expression().IDENT().getText()))
+    //console.log(`No ownership discovered for assigning ${ctx.expression().IDENT().getText()}`)
     if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
       exprType.ownershipFlag = false;
     }
@@ -238,7 +250,6 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
         this.visit(stmt);
       }
     }
-
     //Exit scope
     const old_env = this.ownership_environment.parent;
     this.ownership_environment = old_env;

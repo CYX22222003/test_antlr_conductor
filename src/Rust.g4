@@ -60,7 +60,7 @@ statement:
     | returnStatement
     ;
 
-functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType blockStatement SEMI; //Type check added
+functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType blockStatement; //Type check added
 
 variableAssignment: IDENT ASSIGN expression SEMI; //Type check added
 
@@ -122,4 +122,4 @@ typeAnnotation: COLON validType; //Type check added
 
 validType: TYPE | LPAREN (validParamType)? RPAREN ARROW validType; //Type check added
 
-validParamType: TYPE (MUT TYPE)*;
+validParamType: TYPE (COMMA TYPE)*;
