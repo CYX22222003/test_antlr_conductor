@@ -28,6 +28,7 @@ import {
 } from "./parser/src/RustParser";
 import { OwnershipEnvironment, ParameterTypeOwnership, TypeOwnership, Type } from "./RustTypeAndOwnershipCheckerUtils";
 import { createGzip } from "zlib";
+import { throwDeprecation } from "process";
 
 class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership> implements RustVisitor<TypeOwnership> {
   public ownership_environment: OwnershipEnvironment = new OwnershipEnvironment();
@@ -119,12 +120,12 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`Type mismatch in declaring ${name}: expected ${type.type} but got ${exprType.type}`);
     }
 
-    if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
-      && exprType.type === "string" 
-      && !this.ownership_environment
-        .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
-      throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
-    }
+    // if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
+    //   && exprType.type === "string" 
+    //   && !this.ownership_environment
+    //     .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
+    //   throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
+    // }
 
     if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
       type.referenceFlag = true;
@@ -148,19 +149,19 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`Type mismatch in declaring ${name}: expected ${type.type} but got ${exprType.type}`);
     }
 
-    if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
-      && exprType.type === "string" 
-      && !this.ownership_environment
-        .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
-      throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
-    }
+    // if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
+    //   && exprType.type === "string" 
+    //   && !this.ownership_environment
+    //     .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
+    //   throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
+    // }
 
     if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
       type.referenceFlag = true;
     } else if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
       exprType.ownershipFlag = false;
       type.ownershipFlag = true;
-    } else if (exprType.type === "string" && !exprType.hasOwnProperty("ownershipFlag") && !exprType.ownershipFlag) {
+    } else if (exprType.type === "string") {
       type.ownershipFlag = true;
     }
 
@@ -176,7 +177,8 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       ? this.checkParametersTypes(ctx.parameters()) as Array<ParameterTypeOwnership>
       : [];
     const paramsTypes: TypeOwnership[] = params.map(p => p.typeOwnership);
-    const paramsNames: string[] = params.map(p => p.name);
+    console.log("Paramter check is successful!");
+    console.log(params);
     const funcType: TypeOwnership = {
       type: "function" as Type,
       ownershipFlag: true,
@@ -184,23 +186,36 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       returnTypeOwnership: returnTypeOwnership
     };
     this.ownership_environment.declare(name, funcType);
-    // Enter scope
-    const extended_env = new OwnershipEnvironment()
-    extended_env.parent = this.ownership_environment;
-    this.ownership_environment = extended_env;
-
-    if (ctx.parameters()) {
-      for (let i = 0; i < paramsTypes.length; i++) {
-        this.ownership_environment.declare(paramsNames[i], paramsTypes[i]);
+    for (let i = 0; i < 2; i++) {
+      // Enter scope
+      const paramsNames: string[] = params.map(p => p.name);
+      const parametersTypes = paramsTypes.map(
+        p => ({ 
+          type: p.type, 
+          ownershipFlag: p.ownershipFlag, 
+          referenceFlag: p.referenceFlag, 
+          paramsTypeOwnership: p.paramsTypeOwnership,
+          returnTypeOwnership: p.returnTypeOwnership
+        })
+      );
+      const extended_env = new OwnershipEnvironment()
+      extended_env.parent = this.ownership_environment;
+      this.ownership_environment = extended_env;
+      console.log("Parameters copied successfully!");
+      console.log(parametersTypes);
+      if (ctx.parameters()) {
+        for (let i = 0; i < parametersTypes.length; i++) {
+          this.ownership_environment.declare(paramsNames[i], parametersTypes[i]);
+        }
       }
+      const bodyType = this.visit(ctx.blockStatement());
+      if (!this.typesEqual(returnTypeOwnership.type, bodyType?.type)) {
+        throw new Error(`Unequal body type vs return type at ${name}: expect ${returnTypeOwnership.type}, got ${bodyType?.type}`);
+      }
+      //Exit scope
+      const old_env = this.ownership_environment.parent;
+      this.ownership_environment = old_env;
     }
-    const bodyType = this.visit(ctx.blockStatement());
-    if (!this.typesEqual(returnTypeOwnership.type, bodyType?.type)) {
-      throw new Error(`Unequal body type vs return type at ${name}: expect ${returnTypeOwnership.type}, got ${bodyType?.type}`);
-    }
-    //Exit scope
-    const old_env = this.ownership_environment.parent;
-    this.ownership_environment = old_env;
     return returnTypeOwnership;
   }
 
@@ -217,18 +232,16 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
     }
 
     
-    if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
-      && exprType.type === "string" 
-      && !this.ownership_environment
-        .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
-      throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
-    }
-    // console.log("Is in the closest environment " 
-    //  + this.ownership_environment.isInClosestEnvironment(ctx.expression().IDENT().getText()))
-    //console.log(`No ownership discovered for assigning ${ctx.expression().IDENT().getText()}`)
-    if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
-      exprType.ownershipFlag = false;
-    }
+    // if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
+    //   && exprType.type === "string" 
+    //   && !this.ownership_environment
+    //     .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
+    //   throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
+    // }
+    
+    // if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
+    //   exprType.ownershipFlag = false;
+    // }
     type.ownershipFlag = true;
     return exprType;
   }
@@ -275,45 +288,59 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
   }
 
   public visitExpression(ctx: ExpressionContext): TypeOwnership {
-    if (ctx.NUMBER()) {
-      const type: Type = "num" as Type;
-      return { type: type } as TypeOwnership;
-    } else if (ctx.BOOL()) {
-      const type: Type = "bool" as Type;
-      return { type: type } as TypeOwnership
-    } else if (ctx.STRING_LITERAL()) {
-      const type: Type = "string" as Type;
-      return { type: type } as TypeOwnership;
-    } else if (ctx.IDENT()) {
-      const name: string = ctx.IDENT().getText();
-      const type: TypeOwnership = this.ownership_environment.lookup(name);
-      if (!type) {
-        throw new Error(`Undefined indentifier ${name}`);
+    if (ctx.getChildCount() == 1) {
+      if (ctx.NUMBER()) {
+        const type: Type = "num" as Type;
+        return { type: type } as TypeOwnership;
+      } else if (ctx.BOOL()) {
+        const type: Type = "bool" as Type;
+        return { type: type } as TypeOwnership
+      } else if (ctx.STRING_LITERAL()) {
+        const type: Type = "string" as Type;
+        return { type: type } as TypeOwnership;
+      } else if (ctx.IDENT()) {
+        const name: string = ctx.IDENT().getText();
+        const type: TypeOwnership = this.ownership_environment.lookup(name);
+        console.log("The current type extracted: " , type);
+        if (!type) {
+          throw new Error(`Undefined indentifier ${name}`);
+        }
+        console.log(`Check ${name} ownership flag `, type);
+        if (type.type === "string" && !type.ownershipFlag && !type.referenceFlag) {
+          console.log("Flag is ", type.ownershipFlag);
+          throw new Error(`Onwership of identifier ${name} has been moved`)
+        }
+        type.ownershipFlag = false;
+        return type;
       }
+    }
 
+    if (ctx.getChildCount() === 2 && ctx.getChild(0).getText() == "&") {
+      const type: TypeOwnership = this.ownership_environment.lookup(ctx.getChild(1).getText());
+      if (!this.typesEqual(type.type, "string")) {
+        throw new Error(`Expected string type but get ${type} type`);
+      }
       if (type.type === "string" && !type.ownershipFlag && !type.referenceFlag) {
+        console.log("Flag is ", type.ownershipFlag);
         throw new Error(`Onwership of identifier ${name} has been moved`)
       }
-      return type;
+      return {type: type.type, ownershipFlag: type.ownershipFlag, referenceFlag: true};
     }
 
     if (ctx.getChildCount() === 2
-      && (ctx.getChild(0).getText() === "&"
-        || ctx.getChild(0).getText() === "-"
+      && (ctx.getChild(0).getText() === "-"
         || ctx.getChild(0).getText() === "!"
       )) {
       const type: TypeOwnership = this.visit(ctx.getChild(1));
-      if (ctx.getChild(0).getText() === "&" && !this.typesEqual(type.type, "string")) {
-        throw new Error(`Expected string type but get ${type} type`);
-      } else if (ctx.getChild(0).getText() === "!" && !this.typesEqual(type.type, "bool")) {
+      if (ctx.getChild(0).getText() === "!" && !this.typesEqual(type.type, "bool")) {
         throw new Error(`Expected bool type but get ${type} type`);
       } else if (ctx.getChild(0).getText() === "-" && !this.typesEqual(type.type, "num")) {
         throw new Error(`Expected num type but get ${type} type`);
       }
       return {
         type: type.type,
-        ownershipFlag: false,
-        referenceFlag: true
+        ownershipFlag: type.ownershipFlag,
+        referenceFlag: type.referenceFlag
       }
     }
 
@@ -361,13 +388,20 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
     if (!fn_type) {
       throw new Error(`Function name ${fn_name} is not declared`);
     }
-
+    console.log(fn_type);
     const params_types = fn_type.paramsTypeOwnership;
+    console.log("params types: ", params_types);
+    console.log("Check param types!");
     const args_types = this.checkCallArguments(ctx.arguments());
+    console.log(args_types);
+    console.log("Check args types!");
+
     if (args_types.length !== params_types.length) {
       throw new Error(`Function '${fn_name}' expects ${params_types.length} arguments but got ${args_types.length}`);
     }
-
+    console.log("Function call check arity is successful!");
+    console.log(params_types);
+    console.log(args_types);
     for (let i = 0; i < params_types.length; i++) {
       if (!this.typesEqual(params_types[i].type, args_types[i].type)) {
         throw new Error(`Type mismatch in argument ${i + 1} for ${fn_name}. Expected ${params_types[i].type} but got ${args_types[i].type}`);
@@ -397,6 +431,7 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
     if (!this.typesEqual(cond_type.type, "bool")) {
       throw new Error("Conditional statement should be boolean")
     }
+    this.visit(ctx.blockStatement());
     return this.visit(ctx.blockStatement());
   }
 
