@@ -1,6 +1,7 @@
 import { AbstractParseTreeVisitor } from "antlr4ng";
 import { RustVisitor } from "./parser/src/RustVisitor";
 import {
+  AltExpressionContext,
   AltStatementContext,
   ArgumentsContext,
   BlockStatementContext,
@@ -189,6 +190,9 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
 
   public visitVariableAssignment(ctx: VariableAssignmentContext): TypeOwnership {
     const type: TypeOwnership = this.ownership_environment.lookup(ctx.IDENT().getText());
+    if (!type) {
+      throw new Error(`Variable ${ctx.IDENT().getText()} is not declared`);
+    }
     const name: string = ctx.IDENT().getText();
     const exprType: TypeOwnership = this.visit(ctx.expression());
 
@@ -395,13 +399,31 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error("Conditional statement should be boolean")
     }
 
-    const consq_type: TypeOwnership = this.visit(ctx.expression(1))
-    const alt_type: TypeOwnership = this.visit(ctx.expression(2));
+    if (!ctx.expression(1)) {
+      throw new Error("Consequential expression should not be empty");
+    }
+
+    if (!ctx.altExpression()) {
+      throw new Error("alternative statement should not be empty");
+    }
+
+    const consq_type: TypeOwnership = this.visit(ctx.expression(1));
+    const alt_type: TypeOwnership = this.visit(ctx.altExpression());
     if (!this.typesEqual(consq_type.type, alt_type.type)) {
       throw new Error("Consequential and alternative are returning different data types");
     }
     return consq_type;
   }
+
+  public visitAltExpression(ctx: AltExpressionContext): TypeOwnership {
+        if (ctx.ifExpression()) {
+            return this.visit(ctx.ifExpression())
+        } else if (ctx.getChildCount() === 3) {
+            return this.visit(ctx.getChild(1));
+        } else {
+            throw new Error("Cannot have empty alternative statement!");
+        }
+    }
 
   public visitConseqStatement(ctx: ConseqStatementContext): TypeOwnership {
     if (ctx.blockStatement())

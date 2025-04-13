@@ -1,6 +1,6 @@
 import { AbstractParseTreeVisitor, ParseTree } from "antlr4ng";
 import { RustVisitor } from "./parser/src/RustVisitor";
-import { BlockStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfExpressionContext, IfStatementContext, ParametersContext, PrimitiveTypeAnnotationContext, ProgramContext, ReturnStatementContext, ReturnTypeContext, RustParser, StatementContext, TypeAnnotationContext, ValidParamTypeContext, ValidTypeContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
+import { AltExpressionContext, BlockStatementContext, ConstantDeclarationContext, ExpressionContext, ExpressionStatementContext, FunctionCallContext, FunctionDeclarationContext, FunctionNameContext, IfExpressionContext, IfStatementContext, ParametersContext, PrimitiveTypeAnnotationContext, ProgramContext, ReturnStatementContext, ReturnTypeContext, RustParser, StatementContext, TypeAnnotationContext, ValidParamTypeContext, ValidTypeContext, VariableAssignmentContext, VariableDeclarationContext, WhileLoopContext } from "./parser/src/RustParser";
 
 export type Instruction = {
     tag: string
@@ -215,8 +215,18 @@ class RustCompiler extends AbstractParseTreeVisitor<void> implements RustVisitor
         const goto_instr = { "tag": "GOTO" };
         this.instrs[this.wc++] = goto_instr;
         jump_on_false_instr["addr"] = this.wc;
-        this.visit(ctx.expression(2));
+        this.visit(ctx.altExpression());
         goto_instr["addr"] = this.wc;
+    }
+
+    public visitAltExpression(ctx: AltExpressionContext): void {
+        if (ctx.ifExpression()) {
+            this.visit(ctx.ifExpression())
+        } else if (ctx.getChildCount() === 3) {
+            this.visit(ctx.getChild(1));
+        } else {
+            throw new Error("Cannot have empty alternative statement!");
+        }
     }
 
     public visitWhileLoop(ctx: WhileLoopContext) {

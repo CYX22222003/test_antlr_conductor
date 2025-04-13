@@ -21,6 +21,7 @@ import { ArgumentsContext } from "./RustParser.js";
 import { WhileLoopContext } from "./RustParser.js";
 import { IfStatementContext } from "./RustParser.js";
 import { IfExpressionContext } from "./RustParser.js";
+import { AltExpressionContext } from "./RustParser.js";
 import { ConseqStatementContext } from "./RustParser.js";
 import { AltStatementContext } from "./RustParser.js";
 import { PrimitiveTypeAnnotationContext } from "./RustParser.js";
@@ -214,6 +215,16 @@ export class RustListener implements ParseTreeListener {
      * @param ctx the parse tree
      */
     exitIfExpression?: (ctx: IfExpressionContext) => void;
+    /**
+     * Enter a parse tree produced by `RustParser.altExpression`.
+     * @param ctx the parse tree
+     */
+    enterAltExpression?: (ctx: AltExpressionContext) => void;
+    /**
+     * Exit a parse tree produced by `RustParser.altExpression`.
+     * @param ctx the parse tree
+     */
+    exitAltExpression?: (ctx: AltExpressionContext) => void;
     /**
      * Enter a parse tree produced by `RustParser.conseqStatement`.
      * @param ctx the parse tree
