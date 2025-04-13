@@ -119,6 +119,13 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`Type mismatch in declaring ${name}: expected ${type.type} but got ${exprType.type}`);
     }
 
+    if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
+      && exprType.type === "string" 
+      && !this.ownership_environment
+        .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
+      throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
+    }
+
     if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
       type.referenceFlag = true;
     } else if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
@@ -139,6 +146,13 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
 
     if (!this.typesEqual(type.type, exprType.type)) {
       throw new Error(`Type mismatch in declaring ${name}: expected ${type.type} but got ${exprType.type}`);
+    }
+
+    if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
+      && exprType.type === "string" 
+      && !this.ownership_environment
+        .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
+      throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
     }
 
     if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
