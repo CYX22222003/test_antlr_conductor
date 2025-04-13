@@ -332,6 +332,10 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
   public visitFunctionCall(ctx: FunctionCallContext): TypeOwnership {
     const fn_name: string = ctx.functionName().IDENT().getText();
     const fn_type: TypeOwnership = this.ownership_environment.lookup(fn_name);
+    
+    if (!fn_type) {
+      throw new Error(`Function name ${fn_name} is not declared`);
+    }
 
     const params_types = fn_type.paramsTypeOwnership;
     const args_types = this.checkCallArguments(ctx.arguments());
