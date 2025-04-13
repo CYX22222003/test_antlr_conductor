@@ -19,16 +19,18 @@ import {
   ProgramContext,
   ReturnStatementContext,
   ReturnTypeContext,
-  StatementContext,
   TypeAnnotationContext,
   ValidTypeContext,
   VariableAssignmentContext,
   VariableDeclarationContext,
   WhileLoopContext,
 } from "./parser/src/RustParser";
-import { OwnershipEnvironment, ParameterTypeOwnership, TypeOwnership, Type } from "./RustTypeAndOwnershipCheckerUtils";
-import { createGzip } from "zlib";
-import { throwDeprecation } from "process";
+import {
+  OwnershipEnvironment,
+  ParameterTypeOwnership,
+  TypeOwnership,
+  Type,
+} from "./RustTypeAndOwnershipCheckerUtils";
 
 class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership> implements RustVisitor<TypeOwnership> {
   public ownership_environment: OwnershipEnvironment = new OwnershipEnvironment();
@@ -120,13 +122,6 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`Type mismatch in declaring ${name}: expected ${type.type} but got ${exprType.type}`);
     }
 
-    // if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
-    //   && exprType.type === "string" 
-    //   && !this.ownership_environment
-    //     .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
-    //   throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
-    // }
-
     if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
       type.referenceFlag = true;
     } else if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
@@ -148,13 +143,6 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
     if (!this.typesEqual(type.type, exprType.type)) {
       throw new Error(`Type mismatch in declaring ${name}: expected ${type.type} but got ${exprType.type}`);
     }
-
-    // if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
-    //   && exprType.type === "string" 
-    //   && !this.ownership_environment
-    //     .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
-    //   throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
-    // }
 
     if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
       type.referenceFlag = true;
@@ -190,10 +178,10 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       // Enter scope
       const paramsNames: string[] = params.map(p => p.name);
       const parametersTypes = paramsTypes.map(
-        p => ({ 
-          type: p.type, 
-          ownershipFlag: p.ownershipFlag, 
-          referenceFlag: p.referenceFlag, 
+        p => ({
+          type: p.type,
+          ownershipFlag: p.ownershipFlag,
+          referenceFlag: p.referenceFlag,
           paramsTypeOwnership: p.paramsTypeOwnership,
           returnTypeOwnership: p.returnTypeOwnership
         })
@@ -231,17 +219,6 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`${name}: Cannot assign type of ${exprType.type} to ${type.type}`);
     }
 
-    
-    // if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
-    //   && exprType.type === "string" 
-    //   && !this.ownership_environment
-    //     .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
-    //   throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
-    // }
-    
-    // if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
-    //   exprType.ownershipFlag = false;
-    // }
     type.ownershipFlag = true;
     return exprType;
   }
@@ -301,7 +278,7 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       } else if (ctx.IDENT()) {
         const name: string = ctx.IDENT().getText();
         const type: TypeOwnership = this.ownership_environment.lookup(name);
-        console.log("The current type extracted: " , type);
+        console.log("The current type extracted: ", type);
         if (!type) {
           throw new Error(`Undefined indentifier ${name}`);
         }
@@ -324,7 +301,7 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
         console.log("Flag is ", type.ownershipFlag);
         throw new Error(`Onwership of identifier ${name} has been moved`)
       }
-      return {type: type.type, ownershipFlag: type.ownershipFlag, referenceFlag: true};
+      return { type: type.type, ownershipFlag: type.ownershipFlag, referenceFlag: true };
     }
 
     if (ctx.getChildCount() === 2
@@ -384,7 +361,7 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
   public visitFunctionCall(ctx: FunctionCallContext): TypeOwnership {
     const fn_name: string = ctx.functionName().IDENT().getText();
     const fn_type: TypeOwnership = this.ownership_environment.lookup(fn_name);
-    
+
     if (!fn_type) {
       throw new Error(`Function name ${fn_name} is not declared`);
     }
@@ -480,14 +457,14 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
   }
 
   public visitAltExpression(ctx: AltExpressionContext): TypeOwnership {
-        if (ctx.ifExpression()) {
-            return this.visit(ctx.ifExpression())
-        } else if (ctx.getChildCount() === 3) {
-            return this.visit(ctx.getChild(1));
-        } else {
-            throw new Error("Cannot have empty alternative statement!");
-        }
+    if (ctx.ifExpression()) {
+      return this.visit(ctx.ifExpression())
+    } else if (ctx.getChildCount() === 3) {
+      return this.visit(ctx.getChild(1));
+    } else {
+      throw new Error("Cannot have empty alternative statement!");
     }
+  }
 
   public visitConseqStatement(ctx: ConseqStatementContext): TypeOwnership {
     if (ctx.blockStatement())
