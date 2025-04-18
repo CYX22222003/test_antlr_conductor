@@ -30,6 +30,8 @@ import {
   ParameterTypeOwnership,
   TypeOwnership,
   Type,
+  deepCloneOwnershipEnvironment,
+  mergeOwnershipEnvironments,
 } from "./RustTypeAndOwnershipCheckerUtils";
 
 class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership> implements RustVisitor<TypeOwnership> {
@@ -165,8 +167,6 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       ? this.checkParametersTypes(ctx.parameters()) as Array<ParameterTypeOwnership>
       : [];
     const paramsTypes: TypeOwnership[] = params.map(p => p.typeOwnership);
-    console.log("Paramter check is successful!");
-    console.log(params);
     const funcType: TypeOwnership = {
       type: "function" as Type,
       ownershipFlag: true,
@@ -189,8 +189,6 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       const extended_env = new OwnershipEnvironment()
       extended_env.parent = this.ownership_environment;
       this.ownership_environment = extended_env;
-      console.log("Parameters copied successfully!");
-      console.log(parametersTypes);
       if (ctx.parameters()) {
         for (let i = 0; i < parametersTypes.length; i++) {
           this.ownership_environment.declare(paramsNames[i], parametersTypes[i]);
@@ -219,6 +217,17 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`${name}: Cannot assign type of ${exprType.type} to ${type.type}`);
     }
 
+
+    // if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
+    //   && exprType.type === "string"
+    //   && !this.ownership_environment
+    //     .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
+    //   throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
+    // }
+
+    // if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
+    //   exprType.ownershipFlag = false;
+    // }
     type.ownershipFlag = true;
     return exprType;
   }
@@ -278,13 +287,10 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       } else if (ctx.IDENT()) {
         const name: string = ctx.IDENT().getText();
         const type: TypeOwnership = this.ownership_environment.lookup(name);
-        console.log("The current type extracted: ", type);
         if (!type) {
           throw new Error(`Undefined indentifier ${name}`);
         }
-        console.log(`Check ${name} ownership flag `, type);
         if (type.type === "string" && !type.ownershipFlag && !type.referenceFlag) {
-          console.log("Flag is ", type.ownershipFlag);
           throw new Error(`Onwership of identifier ${name} has been moved`)
         }
         type.ownershipFlag = false;
@@ -294,12 +300,14 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
 
     if (ctx.getChildCount() === 2 && ctx.getChild(0).getText() == "&") {
       const type: TypeOwnership = this.ownership_environment.lookup(ctx.getChild(1).getText());
+      if (!type) {
+        throw new Error(`Undefined identifier ${ctx.getChild(1).getText()}`);
+      }
       if (!this.typesEqual(type.type, "string")) {
         throw new Error(`Expected string type but get ${type} type`);
       }
       if (type.type === "string" && !type.ownershipFlag && !type.referenceFlag) {
-        console.log("Flag is ", type.ownershipFlag);
-        throw new Error(`Onwership of identifier ${name} has been moved`)
+        throw new Error(`Onwership of identifier ${ctx.getChild(1).getText()} has been moved`)
       }
       return { type: type.type, ownershipFlag: type.ownershipFlag, referenceFlag: true };
     }
@@ -365,20 +373,12 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
     if (!fn_type) {
       throw new Error(`Function name ${fn_name} is not declared`);
     }
-    console.log(fn_type);
     const params_types = fn_type.paramsTypeOwnership;
-    console.log("params types: ", params_types);
-    console.log("Check param types!");
     const args_types = this.checkCallArguments(ctx.arguments());
-    console.log(args_types);
-    console.log("Check args types!");
 
     if (args_types.length !== params_types.length) {
       throw new Error(`Function '${fn_name}' expects ${params_types.length} arguments but got ${args_types.length}`);
     }
-    console.log("Function call check arity is successful!");
-    console.log(params_types);
-    console.log(args_types);
     for (let i = 0; i < params_types.length; i++) {
       if (!this.typesEqual(params_types[i].type, args_types[i].type)) {
         throw new Error(`Type mismatch in argument ${i + 1} for ${fn_name}. Expected ${params_types[i].type} but got ${args_types[i].type}`);
@@ -418,11 +418,17 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
     if (!this.typesEqual(cond_type.type, "bool")) {
       throw new Error("Conditional statement should be boolean")
     }
+    const old_env = this.ownership_environment;
+    const consq_env: OwnershipEnvironment = deepCloneOwnershipEnvironment(this.ownership_environment);
 
+    this.ownership_environment = consq_env;
     const consq_type: TypeOwnership = this.visit(ctx.conseqStatement())
     // throw new Error(consq_type as string);
     if (ctx.altStatement()) {
+      this.ownership_environment = old_env;
       const alt_type: TypeOwnership = this.visit(ctx.altStatement());
+      this.ownership_environment = mergeOwnershipEnvironments(
+        consq_env, this.ownership_environment);
       if (consq_type === null || alt_type === null) {
         return null;
       }
@@ -431,6 +437,9 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       }
       throw new Error("Consequential and alternative are returning different data types");
     }
+    this.ownership_environment = mergeOwnershipEnvironments(
+        consq_env,
+        this.ownership_environment);
     return consq_type;
   }
 
@@ -448,8 +457,17 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error("alternative statement should not be empty");
     }
 
+    const old_env = this.ownership_environment;
+    const consq_env: OwnershipEnvironment = deepCloneOwnershipEnvironment(this.ownership_environment);
+
+    this.ownership_environment = consq_env;
     const consq_type: TypeOwnership = this.visit(ctx.expression(1));
+
+    this.ownership_environment = old_env;
     const alt_type: TypeOwnership = this.visit(ctx.altExpression());
+    this.ownership_environment = mergeOwnershipEnvironments(
+      consq_env,
+      this.ownership_environment);
     if (!this.typesEqual(consq_type.type, alt_type.type)) {
       throw new Error("Consequential and alternative are returning different data types");
     }
