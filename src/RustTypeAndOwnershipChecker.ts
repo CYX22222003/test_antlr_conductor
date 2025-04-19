@@ -148,6 +148,11 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
 
     if (ctx.getChild(1).getText() === "mut") {
       type.mutableFlag = true;
+      type.borrowedFlag = false;
+    }
+
+    if (exprType.mutableFlag && exprType.borrowedFlag) {
+      type.borrowedFrom = exprType;
     }
 
     if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
@@ -221,6 +226,14 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`${name}: Cannot assign type of ${exprType.type} to ${type.type}`);
     }
 
+    if (!type.mutableFlag) {
+      throw new Error(`Variable ${name} is not mutable`);
+    }
+
+    if (type.borrowedFlag) {
+      throw new Error(`Variable ${name} is already mutably borrowed`);
+    }
+
     type.ownershipFlag = true;
     return exprType;
   }
@@ -256,6 +269,15 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
         this.visit(stmt);
       }
     }
+
+    // Return variables borrowed in this block before exiting the scope
+    for (const [name, type] of this.ownership_environment.symbols) {
+      if (type.borrowedFrom) {
+        type.borrowedFrom.borrowedFlag = false;
+      }
+      console.log("name ", name, "borrowedFrom ", type.borrowedFrom);
+    }
+
     //Exit scope
     const old_env = this.ownership_environment.parent;
     this.ownership_environment = old_env;
@@ -282,6 +304,9 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
         const type: TypeOwnership = this.ownership_environment.lookup(name);
         if (!type) {
           throw new Error(`Undefined indentifier ${name}`);
+        }
+        if (type.hasOwnProperty("borrowedFlag") && type.borrowedFlag) {
+          throw new Error(`Identifier ${name} is already mutably borrowed`);
         }
         if (type.type === "string" && !type.ownershipFlag && !type.referenceFlag) {
           throw new Error(`Onwership of identifier ${name} has been moved`)
@@ -338,7 +363,10 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       if (!type.mutableFlag) {
         throw new Error(`Identifier ${ctx.getChild(2).getText()} is not mutable`);
       }
-      type.mutableFlag = false;
+      if (type.borrowedFlag) {
+        throw new Error(`Identifier ${ctx.getChild(2).getText()} is already mutably borrowed`);
+      }
+      type.borrowedFlag = true;
       return type;
     }
 
