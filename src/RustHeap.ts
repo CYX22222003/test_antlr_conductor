@@ -30,7 +30,7 @@ class RustHeap {
 
   private heap_make(bytes: number): void {
     if (bytes % 8 !== 0) {
-      throw Error("heap bytes must be divisible by 8")
+      throw Error("heap bytes must be divisible by 8");
     }
     this.data = new ArrayBuffer(bytes);
     this.heap = new DataView(this.data);
@@ -45,46 +45,40 @@ class RustHeap {
     return addr;
   }
 
-  public heap_get = address =>
-    this.heap.getFloat64(address * this.word_size)
+  public heap_get = (address) => this.heap.getFloat64(address * this.word_size);
 
   public heap_set = (address, x) =>
-    this.heap.setFloat64(address * this.word_size, x)
+    this.heap.setFloat64(address * this.word_size, x);
 
   // child index starts at 0
   public heap_get_child = (address, child_index) =>
-    this.heap_get(address + 1 + child_index)
+    this.heap_get(address + 1 + child_index);
 
   public heap_set_child = (address, child_index, value) =>
-    this.heap_set(address + 1 + child_index, value)
+    this.heap_set(address + 1 + child_index, value);
 
-  public heap_get_tag =
-    address => this.heap.getUint8(address * this.word_size)
+  public heap_get_tag = (address) =>
+    this.heap.getUint8(address * this.word_size);
 
-  public heap_get_size =
-    address => this.heap.getUint16(address * this.word_size +
-      this.size_offset)
+  public heap_get_size = (address) =>
+    this.heap.getUint16(address * this.word_size + this.size_offset);
 
-  public heap_get_number_of_children =
-    address => this.heap_get_tag(address) === Tag.Number_tag
+  public heap_get_number_of_children = (address) =>
+    this.heap_get_tag(address) === Tag.Number_tag
       ? 0
-      : this.heap_get_size(address) - 1
+      : this.heap_get_size(address) - 1;
 
-  public heap_set_byte_at_offset =
-    (address, offset, value) =>
-      this.heap.setUint8(address * this.word_size + offset, value)
+  public heap_set_byte_at_offset = (address, offset, value) =>
+    this.heap.setUint8(address * this.word_size + offset, value);
 
-  public heap_get_byte_at_offset =
-    (address, offset) =>
-      this.heap.getUint8(address * this.word_size + offset)
+  public heap_get_byte_at_offset = (address, offset) =>
+    this.heap.getUint8(address * this.word_size + offset);
 
-  public heap_set_2_bytes_at_offset =
-    (address, offset, value) =>
-      this.heap.setUint16(address * this.word_size + offset, value)
+  public heap_set_2_bytes_at_offset = (address, offset, value) =>
+    this.heap.setUint16(address * this.word_size + offset, value);
 
-  public heap_get_2_bytes_at_offset =
-    (address, offset) =>
-      this.heap.getUint16(address * this.word_size + offset)
+  public heap_get_2_bytes_at_offset = (address, offset) =>
+    this.heap.getUint16(address * this.word_size + offset);
 }
 
 export default RustHeap;

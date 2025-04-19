@@ -8,7 +8,7 @@ class RustIdealizedVM {
   private OS = []; // JS array (stack) of words (Addresses, word-encoded literals, numbers)
   private instrs: Instruction[];
   private PC: number = 0;
-  private unassigned = () => {};
+  private unassigned = () => { };
   private HEAP = new RustHeap(1000000);
 
   private False = this.HEAP.heap_allocate(Tag.False_tag, 1);
@@ -209,20 +209,19 @@ class RustIdealizedVM {
   };
 
   private JS_value_to_address = (x) => {
-    console.log("this is x from JS_value_to_address: ", x, " with type of", typeof x)
     return x === undefined
       ? this.Undefined
       : typeof x === "boolean"
-      ? x
-        ? this.True
-        : this.False
-      : typeof x === "number"
-      ? this.heap_allocate_Number(x)
-      : typeof x === "object"
-      ? this.heap_allocate_Pointer(x)
-      : typeof x === "string"
-      ? this.heap_allocate_String(x)
-      : "unknown word tag from JS_value_to_address: " + x;
+        ? x
+          ? this.True
+          : this.False
+        : typeof x === "number"
+          ? this.heap_allocate_Number(x)
+          : typeof x === "object"
+            ? this.heap_allocate_Pointer(x)
+            : typeof x === "string"
+              ? this.heap_allocate_String(x)
+              : "unknown word tag from JS_value_to_address: " + x;
   };
 
   private address_to_JS_value = (x) => {
@@ -231,16 +230,16 @@ class RustIdealizedVM {
         ? true
         : false
       : this.is_Number(x)
-      ? this.HEAP.heap_get(x + 1)
-      : this.is_String(x)
-      ? this.string_pool[this.HEAP.heap_get_2_bytes_at_offset(x, 1)]
-      : this.is_Closure(x)
-      ? "<closure>"
-      : this.is_Pointer(x)
-      ? [this.HEAP.heap_get(x + 1), this.HEAP.heap_get(x + 2)]
-      : this.is_Undefined(x)
-      ? undefined
-      : "unknown word tag: " + x;
+        ? this.HEAP.heap_get(x + 1)
+        : this.is_String(x)
+          ? this.string_pool[this.HEAP.heap_get_2_bytes_at_offset(x, 1)]
+          : this.is_Closure(x)
+            ? "<closure>"
+            : this.is_Pointer(x)
+              ? [this.HEAP.heap_get(x + 1), this.HEAP.heap_get(x + 2)]
+              : this.is_Undefined(x)
+                ? undefined
+                : "unknown word tag: " + x;
   };
 
   public constructor(instrs: Instruction[]) {
@@ -248,20 +247,15 @@ class RustIdealizedVM {
   }
 
   public execute() {
-    // console.log("try")
     const frame_address = this.heap_allocate_Frame(0);
     this.E = this.heap_Environment_extend(
       frame_address,
       this.heap_empty_Environment
     );
-    // console.log(`Initial environment at ${this.E}`)
     while (this.instrs[this.PC].tag !== "DONE") {
-      // console.log(`Current environment at ${this.E} at PC ${this.PC}`)
       const instr = this.instrs[this.PC++];
       this.microcode[instr.tag](instr);
     }
-
-    console.log("Final OS ", this.OS);
 
     if (this.OS.length > 0) {
       return this.address_to_JS_value(this.peek(this.OS, 0).val);
@@ -283,7 +277,6 @@ class RustIdealizedVM {
     );
 
   private apply_binop = (op, v1, v2) => {
-    // console.log("apply binop with values of ", v1)
     return this.JS_value_to_address(
       this.binop_microcode[op](
         this.address_to_JS_value(v1),
@@ -343,7 +336,6 @@ class RustIdealizedVM {
         return undefined;
       }
     }
-    // console.log(this.E);
     throw new Error(`unbound name: ${x} at ${this.PC}`);
   }
 
@@ -362,7 +354,6 @@ class RustIdealizedVM {
       });
     },
     BINOP: (instr) => {
-      // console.log("BINOP microcode with OS of", this.OS)
       const val2 = this.OS.pop().val;
       const val1 = this.OS.pop().val;
       return this.push(this.OS, {
@@ -375,27 +366,19 @@ class RustIdealizedVM {
     GOTO: (instr) => (this.PC = instr.addr),
     ENTER_SCOPE: (instr) => {
       this.push(this.RTS, this.heap_allocate_Blockframe(this.E));
-      // console.log(`E1: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`)
       const frame_address = this.heap_allocate_Frame(instr.num);
-      // console.log(`E2: Current free pointer at ${this.HEAP.free}, current environment at ${this.E}`)
       this.E = this.heap_Environment_extend(frame_address, this.E);
       for (let i = 0; i < instr.num; i++) {
         this.HEAP.heap_set_child(frame_address, i, this.Unassigned);
       }
-      // console.log(`E3: Current free pointer at ${this.HEAP.free}, current environment at ${this.E} at PC ${this.PC}`)
-      // console.log("ENTER_SCODE succ")
     },
     EXIT_SCOPE: (instr) => {
       this.E = this.heap_get_Blockframe_environment(this.RTS.pop());
-      // console.log("EXIT_SCOPE succ");
     },
     LD: (instr) => {
       let val;
-      // console.log("LD instruction random")
       val = this.heap_get_Environment_value(this.E, instr.pos);
-      // console.log("environment value of LD", val)
       if (this.is_Unassigned(val)) {
-        // console.log("unassigned error instruction:", instr)
         throw new Error("access of unassigned variable");
       }
       this.push(this.OS, { val: val, pos: instr.pos });
@@ -408,7 +391,11 @@ class RustIdealizedVM {
       // dereference the pointer
       const heap_node_addr = this.peek(this.OS, 0).val;
       const pos = this.heap_get_Environment_value(this.E, instr.pos);
-      this.heap_set_Environment_value(this.E, this.address_to_JS_value(pos), heap_node_addr);
+      this.heap_set_Environment_value(
+        this.E,
+        this.address_to_JS_value(pos),
+        heap_node_addr
+      );
     },
     LDF: (instr) => {
       const closure_address = this.heap_allocate_Closure(
@@ -419,7 +406,6 @@ class RustIdealizedVM {
       this.push(this.OS, { val: closure_address });
     },
     CALL: (instr) => {
-      // console.log("Call Microcode", instr)
       const arity = instr.arity;
       const fun = this.peek(this.OS, arity).val;
       const frame_address = this.heap_allocate_Frame(arity);

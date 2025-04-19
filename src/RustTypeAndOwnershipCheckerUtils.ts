@@ -79,7 +79,9 @@ export class OwnershipEnvironment {
 //
 // "Help me to write a helper function to deep clonse the OwnershipEnvironment"
 
-export function deepCloneOwnershipEnvironment(env: OwnershipEnvironment): OwnershipEnvironment {
+export function deepCloneOwnershipEnvironment(
+  env: OwnershipEnvironment
+): OwnershipEnvironment {
   const clonedEnv = new OwnershipEnvironment();
   env.symbols.forEach((value, key) => {
     clonedEnv.declare(key, deepCloneTypeOwnership(value));
@@ -109,7 +111,6 @@ function deepCloneTypeOwnership(typeOwnership: TypeOwnership): TypeOwnership {
 // "Add another function to merge two TypeOwnership environment. They should have same number of parents.
 // If there is a key value pair existing in both of the environment, take the conjunction of the onwershipFlag,
 // the rest assume to be the same."
-
 export function mergeOwnershipEnvironments(
   env1: OwnershipEnvironment,
   env2: OwnershipEnvironment
@@ -122,7 +123,10 @@ export function mergeOwnershipEnvironments(
 
   env1.symbols.forEach((value, key) => {
     if (env2.symbols.has(key)) {
-      const mergedTypeOwnership = mergeTypeOwnership(value, env2.symbols.get(key)!);
+      const mergedTypeOwnership = mergeTypeOwnership(
+        value,
+        env2.symbols.get(key)!
+      );
       mergedEnv.declare(key, mergedTypeOwnership);
     } else {
       mergedEnv.declare(key, value);
@@ -142,7 +146,10 @@ export function mergeOwnershipEnvironments(
   return mergedEnv;
 }
 
-function mergeTypeOwnership(type1: TypeOwnership, type2: TypeOwnership): TypeOwnership {
+function mergeTypeOwnership(
+  type1: TypeOwnership,
+  type2: TypeOwnership
+): TypeOwnership {
   if (type1.type !== type2.type) {
     throw new Error("Type mismatch while merging TypeOwnership.");
   }
