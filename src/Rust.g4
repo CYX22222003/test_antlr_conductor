@@ -85,7 +85,8 @@ expression:
     | IDENT
     | STRING_LITERAL
     | functionCall
-    | (MINUS | NOT | AMP | AMP MUT | STAR) expression
+    | STAR* expression
+    | (MINUS | NOT | AMP | AMP MUT) expression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
     | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression

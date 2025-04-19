@@ -209,7 +209,7 @@ class RustIdealizedVM {
   };
 
   private JS_value_to_address = (x) => {
-    // console.log("this is x from JS_value_to_address: ", x, " with type of", typeof x)
+    console.log("this is x from JS_value_to_address: ", x, " with type of", typeof x)
     return x === undefined
       ? this.Undefined
       : typeof x === "boolean"
@@ -218,15 +218,14 @@ class RustIdealizedVM {
         : this.False
       : typeof x === "number"
       ? this.heap_allocate_Number(x)
-      : typeof x === "object" && x.tag === "pointer"
-      ? this.heap_allocate_Pointer(x.pos)
+      : typeof x === "object"
+      ? this.heap_allocate_Pointer(x)
       : typeof x === "string"
       ? this.heap_allocate_String(x)
       : "unknown word tag from JS_value_to_address: " + x;
   };
 
   private address_to_JS_value = (x) => {
-    // console.log("this is x from address_to_JS_value: ", x)
     return this.is_Boolean(x)
       ? this.is_True(x)
         ? true
@@ -261,6 +260,8 @@ class RustIdealizedVM {
       const instr = this.instrs[this.PC++];
       this.microcode[instr.tag](instr);
     }
+
+    console.log("Final OS ", this.OS);
 
     if (this.OS.length > 0) {
       return this.address_to_JS_value(this.peek(this.OS, 0).val);
@@ -354,8 +355,7 @@ class RustIdealizedVM {
     UNOP: (instr) => {
       if (instr.sym === "&mut") {
         const pos = this.OS.pop().pos;
-        const val = this.JS_value_to_address({ tag: "pointer", pos });
-        return this.push(this.OS, { val: val });
+        return this.push(this.OS, { val: this.JS_value_to_address(pos) });
       }
       return this.push(this.OS, {
         val: this.apply_unop(instr.sym, this.OS.pop().val),

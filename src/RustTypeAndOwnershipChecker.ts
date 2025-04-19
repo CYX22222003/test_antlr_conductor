@@ -306,12 +306,9 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
     }
 
     if (ctx.getChildCount() === 2 && ctx.getChild(0).getText() === "*") {
-      const type: TypeOwnership = this.ownership_environment.lookup(ctx.getChild(1).getText());
+      const type: TypeOwnership = this.visit(ctx.getChild(1));
       if (!type) {
         throw new Error(`Undefined identifier ${ctx.getChild(1).getText()}`);
-      }
-      if (type.type === "string" && !type.ownershipFlag && !type.referenceFlag) {
-        throw new Error(`Onwership of identifier ${ctx.getChild(1).getText()} has been moved`)
       }
       return { type: type.type, ownershipFlag: type.ownershipFlag, referenceFlag: false };
     }
