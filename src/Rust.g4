@@ -37,7 +37,6 @@ GEQ: '>=';
 NOT: '!';
 ARROW: '->';
 AMP: '&';
-AMPMUT: '&mut'
 
 // Identifiers and Literals
 IDENT: [a-zA-Z_][a-zA-Z0-9_]*;
@@ -53,6 +52,7 @@ statement:
       constantDeclaration
     | variableDeclaration
     | functionDeclaration
+    | pointerVariableAssignment
     | variableAssignment
     | expressionStatement
     | blockStatement
@@ -62,6 +62,8 @@ statement:
     ;
 
 functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType blockStatement; //Type check added
+
+pointerVariableAssignment: STAR IDENT ASSIGN expression SEMI;
 
 variableAssignment: IDENT ASSIGN expression SEMI; //Type check added
 
@@ -83,7 +85,7 @@ expression:
     | IDENT
     | STRING_LITERAL
     | functionCall
-    | (MINUS | NOT | AMP | AMPMUT | STAR) expression
+    | (MINUS | NOT | AMP | AMP MUT | STAR) expression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
     | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression

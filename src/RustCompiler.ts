@@ -172,9 +172,9 @@ class RustCompiler extends AbstractParseTreeVisitor<void> implements RustVisitor
     }
 
     public visitExpressionStatement(ctx: ExpressionStatementContext): void {
-        if (!ctx.SEMI()) {
-            throw new Error("Statement must end with ;")
-        }
+        // if (!ctx.SEMI()) {
+        //     throw new Error("Statement must end with ;")
+        // }
         this.visit(ctx.expression());
     }
 
@@ -362,6 +362,16 @@ class RustCompiler extends AbstractParseTreeVisitor<void> implements RustVisitor
             pos: this.compile_time_environment_position(this.compile_time_environment, symbol)
         };
     }
+
+    public visitPointerVariableAssignment(ctx: VariableAssignmentContext) {
+      this.visit(ctx.expression());
+      let symbol: string = ctx.IDENT().getText();
+      this.instrs[this.wc++] = {
+          tag: "ASSIGN_PTR",
+          sym: symbol,
+          pos: this.compile_time_environment_position(this.compile_time_environment, symbol)
+      };
+  }
 }
 
 export default RustCompiler;

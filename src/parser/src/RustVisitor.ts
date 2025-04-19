@@ -6,6 +6,7 @@ import { AbstractParseTreeVisitor } from "antlr4ng";
 import { ProgramContext } from "./RustParser.js";
 import { StatementContext } from "./RustParser.js";
 import { FunctionDeclarationContext } from "./RustParser.js";
+import { PointerVariableAssignmentContext } from "./RustParser.js";
 import { VariableAssignmentContext } from "./RustParser.js";
 import { ParametersContext } from "./RustParser.js";
 import { ReturnTypeContext } from "./RustParser.js";
@@ -56,6 +57,12 @@ export class RustVisitor<Result> extends AbstractParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitFunctionDeclaration?: (ctx: FunctionDeclarationContext) => Result;
+    /**
+     * Visit a parse tree produced by `RustParser.pointerVariableAssignment`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitPointerVariableAssignment?: (ctx: PointerVariableAssignmentContext) => Result;
     /**
      * Visit a parse tree produced by `RustParser.variableAssignment`.
      * @param ctx the parse tree

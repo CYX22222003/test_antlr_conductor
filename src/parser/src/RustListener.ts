@@ -6,6 +6,7 @@ import { ErrorNode, ParseTreeListener, ParserRuleContext, TerminalNode } from "a
 import { ProgramContext } from "./RustParser.js";
 import { StatementContext } from "./RustParser.js";
 import { FunctionDeclarationContext } from "./RustParser.js";
+import { PointerVariableAssignmentContext } from "./RustParser.js";
 import { VariableAssignmentContext } from "./RustParser.js";
 import { ParametersContext } from "./RustParser.js";
 import { ReturnTypeContext } from "./RustParser.js";
@@ -65,6 +66,16 @@ export class RustListener implements ParseTreeListener {
      * @param ctx the parse tree
      */
     exitFunctionDeclaration?: (ctx: FunctionDeclarationContext) => void;
+    /**
+     * Enter a parse tree produced by `RustParser.pointerVariableAssignment`.
+     * @param ctx the parse tree
+     */
+    enterPointerVariableAssignment?: (ctx: PointerVariableAssignmentContext) => void;
+    /**
+     * Exit a parse tree produced by `RustParser.pointerVariableAssignment`.
+     * @param ctx the parse tree
+     */
+    exitPointerVariableAssignment?: (ctx: PointerVariableAssignmentContext) => void;
     /**
      * Enter a parse tree produced by `RustParser.variableAssignment`.
      * @param ctx the parse tree

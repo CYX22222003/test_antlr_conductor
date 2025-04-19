@@ -393,12 +393,6 @@ class RustIdealizedVM {
       let val;
       // console.log("LD instruction random")
       val = this.heap_get_Environment_value(this.E, instr.pos);
-
-      console.log("LD instruction with value of", val);
-      console.log(
-        "LD instruction with value of real",
-        this.address_to_JS_value(val) as [number, number]
-      );
       // console.log("environment value of LD", val)
       if (this.is_Unassigned(val)) {
         // console.log("unassigned error instruction:", instr)
@@ -409,6 +403,12 @@ class RustIdealizedVM {
     ASSIGN: (instr) => {
       const heap_node_addr = this.peek(this.OS, 0).val;
       this.heap_set_Environment_value(this.E, instr.pos, heap_node_addr);
+    },
+    ASSIGN_PTR: (instr) => {
+      // dereference the pointer
+      const heap_node_addr = this.peek(this.OS, 0).val;
+      const pos = this.heap_get_Environment_value(this.E, instr.pos);
+      this.heap_set_Environment_value(this.E, this.address_to_JS_value(pos), heap_node_addr);
     },
     LDF: (instr) => {
       const closure_address = this.heap_allocate_Closure(
