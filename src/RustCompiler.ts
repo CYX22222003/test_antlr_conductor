@@ -243,8 +243,8 @@ class RustCompiler extends AbstractParseTreeVisitor<void> implements RustVisitor
 
     public visitExpression(ctx: ExpressionContext): void {
         let count: number = ctx.getChildCount();
-        console.log("Number of children: " + count)
-        console.log("First child: " + ctx.getChild(0));
+        // console.log("Number of children: " + count)
+        // console.log("First child: " + ctx.getChild(0));
         if (count === 1) {
             if (ctx.BOOL()) {
                 this.instrs[this.wc++] = { tag: "LDC", val: ctx.getChild(0).getText() === "true" };
@@ -270,9 +270,14 @@ class RustCompiler extends AbstractParseTreeVisitor<void> implements RustVisitor
             if (ctx.LPAREN() && ctx.RPAREN()) {
                 this.visit(ctx.getChild(1));
             } else {
+              if (ctx.getChild(1).getText() === "mut") {
+                this.visit(ctx.getChild(2));
+                this.instrs[this.wc++] = { tag: "UNOP", sym: "&mut" };
+              } else {
                 this.visit(ctx.getChild(0));
                 this.visit(ctx.getChild(2));
                 this.instrs[this.wc++] = { tag: "BINOP", sym: ctx.getChild(1).getText() };
+              }
             }
         } else {
             throw new Error("Unrecognizable instructions");

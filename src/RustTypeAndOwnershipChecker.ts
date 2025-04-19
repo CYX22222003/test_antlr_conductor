@@ -146,10 +146,14 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`Type mismatch in declaring ${name}: expected ${type.type} but got ${exprType.type}`);
     }
 
+    if (ctx.getChild(1).getText() === "mut") {
+      type.mutableFlag = true;
+    }
+
     if (exprType.type === "string" && exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
       type.referenceFlag = true;
     } else if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
-      exprType.ownershipFlag = false;
+      // exprType.ownershipFlag = false;
       type.ownershipFlag = true;
     } else if (exprType.type === "string") {
       type.ownershipFlag = true;
@@ -217,17 +221,6 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       throw new Error(`${name}: Cannot assign type of ${exprType.type} to ${type.type}`);
     }
 
-
-    // if ((ctx.expression()?.getChildCount() == 1 && ctx.expression()?.IDENT() !== null)
-    //   && exprType.type === "string"
-    //   && !this.ownership_environment
-    //     .isInClosestEnvironment(ctx.expression()?.IDENT()?.getText())) {
-    //   throw new Error(`It is possible that the ownership of ${ctx.expression().IDENT().getText()} has been moved.`);
-    // }
-
-    // if (exprType.type === "string" && exprType.hasOwnProperty("ownershipFlag") && exprType.ownershipFlag) {
-    //   exprType.ownershipFlag = false;
-    // }
     type.ownershipFlag = true;
     return exprType;
   }
@@ -312,6 +305,17 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
       return { type: type.type, ownershipFlag: type.ownershipFlag, referenceFlag: true };
     }
 
+    if (ctx.getChildCount() === 2 && ctx.getChild(0).getText() === "*") {
+      const type: TypeOwnership = this.ownership_environment.lookup(ctx.getChild(1).getText());
+      if (!type) {
+        throw new Error(`Undefined identifier ${ctx.getChild(1).getText()}`);
+      }
+      if (type.type === "string" && !type.ownershipFlag && !type.referenceFlag) {
+        throw new Error(`Onwership of identifier ${ctx.getChild(1).getText()} has been moved`)
+      }
+      return { type: type.type, ownershipFlag: type.ownershipFlag, referenceFlag: false };
+    }
+
     if (ctx.getChildCount() === 2
       && (ctx.getChild(0).getText() === "-"
         || ctx.getChild(0).getText() === "!"
@@ -327,6 +331,18 @@ class RustTypeAndOwnershipChecker extends AbstractParseTreeVisitor<TypeOwnership
         ownershipFlag: type.ownershipFlag,
         referenceFlag: type.referenceFlag
       }
+    }
+
+    if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "&" && ctx.getChild(1).getText() === "mut") {
+      const type: TypeOwnership = this.ownership_environment.lookup(ctx.getChild(2).getText());
+      if (!type) {
+        throw new Error(`Undefined identifier ${ctx.getChild(2).getText()}`);
+      }
+      if (!type.mutableFlag) {
+        throw new Error(`Identifier ${ctx.getChild(2).getText()} is not mutable`);
+      }
+      type.mutableFlag = false;
+      return type;
     }
 
     if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "(") {

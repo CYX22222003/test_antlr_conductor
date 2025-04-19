@@ -37,6 +37,7 @@ GEQ: '>=';
 NOT: '!';
 ARROW: '->';
 AMP: '&';
+AMPMUT: '&mut'
 
 // Identifiers and Literals
 IDENT: [a-zA-Z_][a-zA-Z0-9_]*;
@@ -70,7 +71,7 @@ returnType: ARROW TYPE; //Type check added
 
 constantDeclaration: CONST IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
 
-variableDeclaration: LET IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
+variableDeclaration: LET (MUT) IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
 
 blockStatement: LBRACE statement* RBRACE; // Type check added
 
@@ -82,10 +83,10 @@ expression:
     | IDENT
     | STRING_LITERAL
     | functionCall
-    | (MINUS | NOT | AMP) expression
+    | (MINUS | NOT | AMP | AMPMUT | STAR) expression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
-    | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression    
+    | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression
     | LPAREN expression RPAREN
     | ifExpression
     ; // Type check added

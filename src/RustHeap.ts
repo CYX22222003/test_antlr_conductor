@@ -12,7 +12,8 @@ export enum Tag {
   Environment_tag = 10,
   Pair_tag = 11,
   Builtin_tag = 12,
-  String_tag = 13
+  String_tag = 13,
+  Pointer_tag = 14,
 }
 
 class RustHeap {
