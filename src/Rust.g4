@@ -52,7 +52,6 @@ statement:
       constantDeclaration
     | variableDeclaration
     | functionDeclaration
-    | pointerVariableAssignment
     | variableAssignment
     | expressionStatement
     | blockStatement
@@ -61,11 +60,14 @@ statement:
     | returnStatement
     ;
 
+lvalue:
+      IDENT
+    | STAR lvalue
+    ;
+
 functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType blockStatement; //Type check added
 
-pointerVariableAssignment: STAR IDENT ASSIGN expression SEMI;
-
-variableAssignment: IDENT ASSIGN expression SEMI; //Type check added
+variableAssignment: lvalue ASSIGN expression SEMI; //Type check added
 
 parameters: IDENT typeAnnotation (COMMA IDENT typeAnnotation)*;
 

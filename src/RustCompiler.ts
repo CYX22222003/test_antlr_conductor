@@ -16,7 +16,6 @@ import {
   ProgramContext,
   ReturnStatementContext,
   ReturnTypeContext,
-  RustParser,
   StatementContext,
   TypeAnnotationContext,
   ValidParamTypeContext,
@@ -444,22 +443,9 @@ class RustCompiler
 
   public visitVariableAssignment(ctx: VariableAssignmentContext) {
     this.visit(ctx.expression());
-    let symbol: string = ctx.IDENT().getText();
+    let symbol: string = ctx.lvalue().IDENT().getText();
     this.instrs[this.wc++] = {
       tag: "ASSIGN",
-      sym: symbol,
-      pos: this.compile_time_environment_position(
-        this.compile_time_environment,
-        symbol
-      ),
-    };
-  }
-
-  public visitPointerVariableAssignment(ctx: VariableAssignmentContext) {
-    this.visit(ctx.expression());
-    let symbol: string = ctx.IDENT().getText();
-    this.instrs[this.wc++] = {
-      tag: "ASSIGN_PTR",
       sym: symbol,
       pos: this.compile_time_environment_position(
         this.compile_time_environment,

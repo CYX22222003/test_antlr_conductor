@@ -234,23 +234,17 @@ class RustTypeAndOwnershipChecker
   }
 
   public visitVariableAssignment(ctx: VariableAssignmentContext): TypeOwnership {
-    const type: TypeOwnership = this.ownership_environment.lookup(
-      ctx.IDENT().getText()
-    );
+    const type: TypeOwnership = this.ownership_environment.lookup(ctx.lvalue().IDENT().getText());
     if (!type) {
-      throw new Error(`Variable ${ctx.IDENT().getText()} is not declared`);
+      throw new Error(`Variable ${ctx.lvalue().IDENT().getText()} is not declared`);
     }
-    const name: string = ctx.IDENT().getText();
+    const name: string = ctx.lvalue().IDENT().getText();
     const exprType: TypeOwnership = this.visit(ctx.expression());
 
     if (!this.typesEqual(type.type, exprType.type)) {
       throw new Error(
         `${name}: Cannot assign type of ${exprType.type} to ${type.type}`
       );
-    }
-
-    if (!type.mutableFlag) {
-      throw new Error(`Variable ${name} is not mutable`);
     }
 
     if (type.borrowedFlag) {
@@ -313,9 +307,7 @@ class RustTypeAndOwnershipChecker
     return blockType;
   }
 
-  public visitExpressionStatement(
-    ctx: ExpressionStatementContext
-  ): TypeOwnership {
+  public visitExpressionStatement(ctx: ExpressionStatementContext): TypeOwnership {
     return this.visit(ctx.expression());
   }
 
@@ -342,7 +334,9 @@ class RustTypeAndOwnershipChecker
         if (!type.ownershipFlag && !type.referenceFlag) {
           throw new Error(`Onwership of identifier ${name} has been moved`);
         }
-        type.ownershipFlag = false;
+        if (type.type === "string") {
+          type.ownershipFlag = false;
+        }
         return type;
       }
     }
@@ -502,11 +496,7 @@ class RustTypeAndOwnershipChecker
           } but got ${args_types[i].type}`
         );
       }
-      if (
-        params_types[i].type === "string" &&
-        args_types[i].hasOwnProperty("ownershipFlag") &&
-        args_types[i].ownershipFlag
-      ) {
+      if (params_types[i].type === "string" && args_types[i].hasOwnProperty("ownershipFlag") && args_types[i].ownershipFlag) {
         args_types[i].ownershipFlag = false;
         params_types[i].ownershipFlag = true;
       }
