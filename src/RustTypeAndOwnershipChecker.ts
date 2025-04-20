@@ -435,10 +435,8 @@ class RustTypeAndOwnershipChecker
         );
       }
       type.borrowedFlag = true;
-      return {
-        ...type,
-        type: "&" + type.type as Type,
-      }
+      type.type = "&" + type.type as Type;
+      return type;
     }
 
     if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "(") {
