@@ -75,7 +75,7 @@ returnType: ARROW TYPE; //Type check added
 
 constantDeclaration: CONST IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
 
-variableDeclaration: LET (MUT) IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
+variableDeclaration: LET (MUT)? IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
 
 blockStatement: LBRACE statement* RBRACE; // Type check added
 

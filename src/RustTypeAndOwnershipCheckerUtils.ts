@@ -97,6 +97,9 @@ function deepCloneTypeOwnership(typeOwnership: TypeOwnership): TypeOwnership {
     type: typeOwnership.type,
     ownershipFlag: typeOwnership.ownershipFlag,
     referenceFlag: typeOwnership.referenceFlag,
+    mutableFlag: typeOwnership.mutableFlag,
+    borrowedFrom: typeOwnership.borrowedFrom,
+    borrowedFlag: typeOwnership.borrowedFlag,
     paramsTypeOwnership: typeOwnership.paramsTypeOwnership
       ? typeOwnership.paramsTypeOwnership.map(deepCloneTypeOwnership)
       : undefined,
@@ -157,6 +160,9 @@ function mergeTypeOwnership(
   return {
     type: type1.type,
     ownershipFlag: type1.ownershipFlag && type2.ownershipFlag,
+    mutableFlag: type1.mutableFlag || type2.mutableFlag, // Assuming mutableFlag is merged with OR
+    borrowedFlag: type1.borrowedFlag || type2.borrowedFlag, // Assuming borrowedFlag is merged with OR
+    borrowedFrom: type1.borrowedFrom,
     referenceFlag: type1.referenceFlag, // Assuming referenceFlag remains the same
     paramsTypeOwnership: type1.paramsTypeOwnership, // Assuming paramsTypeOwnership remains the same
     returnTypeOwnership: type1.returnTypeOwnership, // Assuming returnTypeOwnership remains the same

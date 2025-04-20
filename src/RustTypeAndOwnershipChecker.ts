@@ -242,27 +242,25 @@ class RustTypeAndOwnershipChecker
       name = lvalue.getText();
       lvalue = lvalue.lvalue();
     }
+    console.log(`starCount: ${starCount}, name: ${name}`);
     const type: TypeOwnership = this.ownership_environment.lookup(name);
     if (!type) {
       throw new Error(`Variable ${name} is not declared`);
     }
     const exprType: TypeOwnership = this.visit(ctx.expression());
 
-    while (starCount--) {
-      let currType = type.type as string;
-      if (currType.startsWith("&")) {
-        currType = currType.slice(1);
-      } else {
-        throw new Error(
-          `Cannot dereference non-pointer type: ${type.type} (at *${ctx.getChildCount() - 1})`
-        );
+    let currType = type.type as string;
+    if (starCount > 0) {
+      let ampCount = currType.toString().split("&").length - 1;
+      if (starCount > ampCount) {
+        throw new Error(`Cannot dereference ${name} ${starCount} time(s)`);
       }
-      type.type = currType as Type;
+      currType = currType.slice(starCount);
     }
 
-    if (!this.typesEqual(type.type, exprType.type)) {
+    if (!this.typesEqual(currType as Type, exprType.type)) {
       throw new Error(
-        `${name}: Cannot assign type of ${exprType.type} to ${type.type}`
+        `${name}: Cannot assign type of ${exprType.type} to ${currType}`
       );
     }
 
@@ -387,6 +385,10 @@ class RustTypeAndOwnershipChecker
       if (!type) {
         throw new Error(`Undefined identifier ${name}`);
       }
+      let ampCount = type.type.toString().split("&").length - 1;
+      if (starCount > ampCount) {
+        throw new Error(`Cannot dereference ${name} ${starCount} time(s)`);
+      }
       let derefType = type.type as string;
       return {
         ...type,
@@ -503,11 +505,8 @@ class RustTypeAndOwnershipChecker
 
     // Returning borrowed variables
     for (let i = 0; i < args_types.length; i++) {
-      if (
-        args_types[i].hasOwnProperty("borrowedFlag") &&
-        args_types[i].borrowedFlag
-      ) {
-        args_types[i].borrowedFlag = false;
+      if (args_types[i].hasOwnProperty("borrowedFlag") && args_types[i].borrowedFlag) {
+        this.ownership_environment.lookup(args_types[i].borrowedFrom).borrowedFlag = false;
       }
     }
 
