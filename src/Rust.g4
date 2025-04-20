@@ -11,7 +11,7 @@ RETURN: 'return';
 WHILE: 'while';
 LOOP: 'loop';
 BOOL: 'true' | 'false';
-TYPE: 'num' | 'bool' | 'string';
+TYPE: 'num' | 'bool' | 'string' | '&' TYPE;
 MUT: 'mut';
 NULL: 'null';
 
@@ -85,7 +85,7 @@ expression:
     | IDENT
     | STRING_LITERAL
     | functionCall
-    | STAR* expression
+    | STAR expression
     | (MINUS | NOT | AMP | AMP MUT) expression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
