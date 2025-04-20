@@ -111,9 +111,7 @@ class RustCompiler
     return out;
   }
 
-  private handleStatements(
-    stmts: StatementContext | StatementContext[] | null
-  ) {
+  private handleStatements(stmts: StatementContext | StatementContext[] | null) {
     if (stmts !== null) {
       if (Array.isArray(stmts)) {
         for (let i = 0; i <= stmts.length - 1; i++) {
@@ -288,6 +286,28 @@ class RustCompiler
 
   public visitExpression(ctx: ExpressionContext): void {
     let count: number = ctx.getChildCount();
+
+    // Handle unlimited leading '*'
+    let starCount = 0;
+    while (ctx.getChildCount() > starCount + 1 && ctx.getChild(starCount).getText() === "*") {
+      starCount++;
+    }
+    if (starCount > 0) {
+      // this.visit(ctx.getChild(ctx.getChildCount() - 1));
+      this.instrs[this.wc++] = {
+        tag: "LD",
+        val: ctx.getChild(starCount).getText(),
+        pos: this.compile_time_environment_position(
+          this.compile_time_environment,
+          ctx.getChild(starCount).getText()
+        ),
+      };
+      for (let i = 0; i < starCount; i++) {
+        this.instrs[this.wc++] = { tag: "UNOP", sym: "*" };
+      }
+      return;
+    }
+
     // console.log("Number of children: " + count)
     // console.log("First child: " + ctx.getChild(0));
     if (count === 1) {

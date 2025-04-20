@@ -86,14 +86,15 @@ class RustTypeAndOwnershipChecker
     return { type: type } as TypeOwnership;
   }
 
-  public visitPrimitiveTypeAnnotation(
-    ctx: PrimitiveTypeAnnotationContext
-  ): TypeOwnership {
+  public visitPrimitiveTypeAnnotation(ctx: PrimitiveTypeAnnotationContext): TypeOwnership {
     if (ctx.getChild(1) === null) {
       throw new Error("Type annotation is missing");
     }
-    const type: Type = ctx.getChild(1).getText() as Type;
-    return { type: type } as TypeOwnership;
+    let retType = "";
+    for (let i = 1; i < ctx.getChildCount(); i++) {
+      retType += ctx.getChild(i).getText();
+    }
+    return { type: retType } as TypeOwnership;
   }
 
   public visitTypeAnnotation(ctx: TypeAnnotationContext): TypeOwnership {
@@ -123,47 +124,7 @@ class RustTypeAndOwnershipChecker
     }
   }
 
-  public visitConstantDeclaration(
-    ctx: ConstantDeclarationContext
-  ): TypeOwnership {
-    const name = ctx.IDENT().getText();
-    const type = this.visit(ctx.primitiveTypeAnnotation());
-    const exprType = this.visit(ctx.expression());
-
-    if (!this.typesEqual(type.type, exprType.type)) {
-      throw new Error(
-        `Type mismatch in declaring ${name}: expected ${type.type} but got ${exprType.type}`
-      );
-    }
-
-    if (
-      exprType.type === "string" &&
-      exprType.hasOwnProperty("referenceFlag") &&
-      exprType.referenceFlag
-    ) {
-      type.referenceFlag = true;
-    } else if (
-      exprType.type === "string" &&
-      exprType.hasOwnProperty("ownershipFlag") &&
-      exprType.ownershipFlag
-    ) {
-      exprType.ownershipFlag = false;
-      type.ownershipFlag = true;
-    } else if (
-      exprType.type === "string" &&
-      !exprType.hasOwnProperty("ownershipFlag") &&
-      !exprType.ownershipFlag
-    ) {
-      type.ownershipFlag = true;
-    }
-
-    this.ownership_environment.declare(name, type);
-    return type;
-  }
-
-  public visitVariableDeclaration(
-    ctx: VariableDeclarationContext
-  ): TypeOwnership {
+  public visitConstantDeclaration(ctx: ConstantDeclarationContext): TypeOwnership {
     const name = ctx.IDENT().getText();
     const type = this.visit(ctx.primitiveTypeAnnotation());
     const exprType = this.visit(ctx.expression());
@@ -183,30 +144,45 @@ class RustTypeAndOwnershipChecker
       type.borrowedFrom = exprType;
     }
 
-    if (
-      exprType.type === "string" &&
-      exprType.hasOwnProperty("referenceFlag") &&
-      exprType.referenceFlag
-    ) {
+    if (exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
       type.referenceFlag = true;
-    } else if (
-      exprType.type === "string" &&
-      exprType.hasOwnProperty("ownershipFlag") &&
-      exprType.ownershipFlag
-    ) {
-      // exprType.ownershipFlag = false;
-      type.ownershipFlag = true;
-    } else if (exprType.type === "string") {
-      type.ownershipFlag = true;
     }
 
+    type.ownershipFlag = true;
     this.ownership_environment.declare(name, type);
     return type;
   }
 
-  public visitFunctionDeclaration(
-    ctx: FunctionDeclarationContext
-  ): TypeOwnership {
+  public visitVariableDeclaration(ctx: VariableDeclarationContext): TypeOwnership {
+    const name = ctx.IDENT().getText();
+    const type = this.visit(ctx.primitiveTypeAnnotation());
+    const exprType = this.visit(ctx.expression());
+
+    if (!this.typesEqual(type.type, exprType.type)) {
+      throw new Error(
+        `Type mismatch in declaring ${name}: expected ${type.type} but got ${exprType.type}`
+      );
+    }
+
+    if (ctx.getChild(1).getText() === "mut") {
+      type.mutableFlag = true;
+      type.borrowedFlag = false;
+    }
+
+    if (exprType.mutableFlag && exprType.borrowedFlag) {
+      type.borrowedFrom = exprType;
+    }
+
+    if (exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
+      type.referenceFlag = true;
+    }
+
+    type.ownershipFlag = true;
+    this.ownership_environment.declare(name, type);
+    return type;
+  }
+
+  public visitFunctionDeclaration(ctx: FunctionDeclarationContext): TypeOwnership {
     const name = ctx.IDENT().getText();
     const returnTypeOwnership = this.visit(ctx.returnType());
 
@@ -257,9 +233,7 @@ class RustTypeAndOwnershipChecker
     return returnTypeOwnership;
   }
 
-  public visitVariableAssignment(
-    ctx: VariableAssignmentContext
-  ): TypeOwnership {
+  public visitVariableAssignment(ctx: VariableAssignmentContext): TypeOwnership {
     const type: TypeOwnership = this.ownership_environment.lookup(
       ctx.IDENT().getText()
     );
@@ -365,11 +339,7 @@ class RustTypeAndOwnershipChecker
         if (type.hasOwnProperty("borrowedFlag") && type.borrowedFlag) {
           throw new Error(`Identifier ${name} is already mutably borrowed`);
         }
-        if (
-          type.type === "string" &&
-          !type.ownershipFlag &&
-          !type.referenceFlag
-        ) {
+        if (!type.ownershipFlag && !type.referenceFlag) {
           throw new Error(`Onwership of identifier ${name} has been moved`);
         }
         type.ownershipFlag = false;
@@ -387,11 +357,7 @@ class RustTypeAndOwnershipChecker
       if (!this.typesEqual(type.type, "string")) {
         throw new Error(`Expected string type but get ${type} type`);
       }
-      if (
-        type.type === "string" &&
-        !type.ownershipFlag &&
-        !type.referenceFlag
-      ) {
+      if (!type.ownershipFlag && !type.referenceFlag) {
         throw new Error(
           `Onwership of identifier ${ctx.getChild(1).getText()} has been moved`
         );
@@ -403,22 +369,35 @@ class RustTypeAndOwnershipChecker
       };
     }
 
-    if (ctx.getChildCount() === 2 && ctx.getChild(0).getText() === "*") {
-      const type: TypeOwnership = this.visit(ctx.getChild(1));
+    let starCount = 0;
+    while (ctx.getChildCount() > starCount + 1 && ctx.getChild(starCount).getText() === "*") {
+      starCount++;
+    }
+    if (starCount > 0) {
+      const name: string = ctx.IDENT().getText();
+      const type: TypeOwnership = this.ownership_environment.lookup(name);
       if (!type) {
-        throw new Error(`Undefined identifier ${ctx.getChild(1).getText()}`);
+        throw new Error(
+          `Undefined identifier ${ctx.getChild(ctx.getChildCount() - 1).getText()}`
+        );
+      }
+      let derefType = type.type as string;
+      for (let i = 0; i < starCount; i++) {
+        if (derefType.startsWith("&")) {
+          derefType = derefType.slice(1);
+        } else {
+          throw new Error(
+            `Cannot dereference non-pointer type: ${derefType} (at *${i + 1})`
+          );
+        }
       }
       return {
-        type: type.type,
-        ownershipFlag: type.ownershipFlag,
-        referenceFlag: false,
+        ...type,
+        type: derefType as Type,
       };
     }
 
-    if (
-      ctx.getChildCount() === 2 &&
-      (ctx.getChild(0).getText() === "-" || ctx.getChild(0).getText() === "!")
-    ) {
+    if (ctx.getChildCount() === 2 && (ctx.getChild(0).getText() === "-" || ctx.getChild(0).getText() === "!")) {
       const type: TypeOwnership = this.visit(ctx.getChild(1));
       if (
         ctx.getChild(0).getText() === "!" &&
@@ -438,11 +417,7 @@ class RustTypeAndOwnershipChecker
       };
     }
 
-    if (
-      ctx.getChildCount() === 3 &&
-      ctx.getChild(0).getText() === "&" &&
-      ctx.getChild(1).getText() === "mut"
-    ) {
+    if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "&" && ctx.getChild(1).getText() === "mut") {
       const type: TypeOwnership = this.ownership_environment.lookup(
         ctx.getChild(2).getText()
       );
@@ -460,7 +435,10 @@ class RustTypeAndOwnershipChecker
         );
       }
       type.borrowedFlag = true;
-      return type;
+      return {
+        ...type,
+        type: "&" + type.type as Type,
+      }
     }
 
     if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "(") {
@@ -474,7 +452,7 @@ class RustTypeAndOwnershipChecker
       if (this.binop_arithmic_xs.includes(operator)) {
         if (leftType !== "num" || rightType !== "num") {
           throw new Error(
-            `Arithmetic operator '${operator}' requires operands of type num`
+            `Arithmetic operator '${operator}' requires operands of type num, but got ${leftType} and ${rightType}`
           );
         }
         return { type: "num" };
@@ -533,6 +511,16 @@ class RustTypeAndOwnershipChecker
       ) {
         args_types[i].ownershipFlag = false;
         params_types[i].ownershipFlag = true;
+      }
+    }
+
+    // Returning borrowed variables
+    for (let i = 0; i < args_types.length; i++) {
+      if (
+        args_types[i].hasOwnProperty("borrowedFlag") &&
+        args_types[i].borrowedFlag
+      ) {
+        args_types[i].borrowedFlag = false;
       }
     }
 

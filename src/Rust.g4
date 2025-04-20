@@ -82,10 +82,10 @@ expressionStatement: expression SEMI; //Type check added
 expression:
       NUMBER
     | BOOL
+    | STAR* IDENT
     | IDENT
     | STRING_LITERAL
     | functionCall
-    | STAR* IDENT
     | (MINUS | NOT | AMP | AMP MUT) expression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
