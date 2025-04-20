@@ -85,7 +85,7 @@ expression:
     | IDENT
     | STRING_LITERAL
     | functionCall
-    | STAR expression
+    | STAR* IDENT
     | (MINUS | NOT | AMP | AMP MUT) expression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
