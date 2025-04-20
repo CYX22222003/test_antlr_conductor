@@ -5,6 +5,7 @@ import { AbstractParseTreeVisitor } from "antlr4ng";
 
 import { ProgramContext } from "./RustParser.js";
 import { StatementContext } from "./RustParser.js";
+import { LvalueContext } from "./RustParser.js";
 import { FunctionDeclarationContext } from "./RustParser.js";
 import { VariableAssignmentContext } from "./RustParser.js";
 import { ParametersContext } from "./RustParser.js";
@@ -50,6 +51,12 @@ export class RustVisitor<Result> extends AbstractParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitStatement?: (ctx: StatementContext) => Result;
+    /**
+     * Visit a parse tree produced by `RustParser.lvalue`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitLvalue?: (ctx: LvalueContext) => Result;
     /**
      * Visit a parse tree produced by `RustParser.functionDeclaration`.
      * @param ctx the parse tree

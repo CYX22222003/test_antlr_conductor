@@ -11,7 +11,7 @@ RETURN: 'return';
 WHILE: 'while';
 LOOP: 'loop';
 BOOL: 'true' | 'false';
-TYPE: 'num' | 'bool' | 'string';
+TYPE: 'num' | 'bool' | 'string' | '&' TYPE;
 MUT: 'mut';
 NULL: 'null';
 
@@ -60,9 +60,14 @@ statement:
     | returnStatement
     ;
 
+lvalue:
+      IDENT
+    | STAR lvalue
+    ;
+
 functionDeclaration: FN IDENT LPAREN parameters? RPAREN returnType blockStatement; //Type check added
 
-variableAssignment: IDENT ASSIGN expression SEMI; //Type check added
+variableAssignment: lvalue ASSIGN expression SEMI; //Type check added
 
 parameters: IDENT typeAnnotation (COMMA IDENT typeAnnotation)*;
 
@@ -70,7 +75,7 @@ returnType: ARROW TYPE; //Type check added
 
 constantDeclaration: CONST IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
 
-variableDeclaration: LET IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
+variableDeclaration: LET (MUT)? IDENT primitiveTypeAnnotation ASSIGN expression SEMI; //Type check added
 
 blockStatement: LBRACE statement* RBRACE; // Type check added
 
@@ -79,13 +84,14 @@ expressionStatement: expression SEMI; //Type check added
 expression:
       NUMBER
     | BOOL
+    | STAR* IDENT
     | IDENT
     | STRING_LITERAL
     | functionCall
-    | (MINUS | NOT | AMP) expression
+    | (MINUS | NOT | AMP | AMP MUT) expression
     | expression (STAR | SLASH) expression
     | expression (PLUS | MINUS) expression
-    | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression    
+    | expression (EQ | GEQ | GT | LT | LEQ | NEQ) expression
     | LPAREN expression RPAREN
     | ifExpression
     ; // Type check added
