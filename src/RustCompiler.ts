@@ -34,6 +34,7 @@ export type Instruction = {
   arity?: number;
   pos?: number[];
   num?: number;
+  derefCnt?: number;
 };
 
 type ParameterType = {
@@ -443,7 +444,14 @@ class RustCompiler
 
   public visitVariableAssignment(ctx: VariableAssignmentContext) {
     this.visit(ctx.expression());
-    let symbol: string = ctx.lvalue().IDENT().getText();
+    let starCount = -1;
+    let symbol: string = "";
+    let lvalue = ctx.lvalue();
+    while(lvalue) {
+      starCount++;
+      symbol = lvalue.getText();
+      lvalue = lvalue.lvalue();
+    }
     this.instrs[this.wc++] = {
       tag: "ASSIGN",
       sym: symbol,
@@ -451,6 +459,7 @@ class RustCompiler
         this.compile_time_environment,
         symbol
       ),
+      derefCnt: starCount,
     };
   }
 }

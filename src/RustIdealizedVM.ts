@@ -385,17 +385,12 @@ class RustIdealizedVM {
     },
     ASSIGN: (instr) => {
       const heap_node_addr = this.peek(this.OS, 0).val;
-      this.heap_set_Environment_value(this.E, instr.pos, heap_node_addr);
-    },
-    ASSIGN_PTR: (instr) => {
-      // dereference the pointer
-      const heap_node_addr = this.peek(this.OS, 0).val;
-      const pos = this.heap_get_Environment_value(this.E, instr.pos);
-      this.heap_set_Environment_value(
-        this.E,
-        this.address_to_JS_value(pos),
-        heap_node_addr
-      );
+      let pos = instr.pos;
+      for (let i = 0; i < instr.derefCnt; i++) {
+        pos = this.heap_get_Environment_value(this.E, pos);
+        pos = this.address_to_JS_value(pos);
+      }
+      this.heap_set_Environment_value(this.E, pos, heap_node_addr);
     },
     LDF: (instr) => {
       const closure_address = this.heap_allocate_Closure(

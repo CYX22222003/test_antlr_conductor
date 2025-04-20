@@ -140,8 +140,8 @@ class RustTypeAndOwnershipChecker
       type.borrowedFlag = false;
     }
 
-    if (exprType.mutableFlag && exprType.borrowedFlag) {
-      type.borrowedFrom = exprType;
+    if (exprType.hasOwnProperty("borrowedFrom") && exprType.borrowedFrom) {
+      type.borrowedFrom = exprType.borrowedFrom
     }
 
     if (exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
@@ -169,8 +169,8 @@ class RustTypeAndOwnershipChecker
       type.borrowedFlag = false;
     }
 
-    if (exprType.mutableFlag && exprType.borrowedFlag) {
-      type.borrowedFrom = exprType;
+    if (exprType.hasOwnProperty("borrowedFrom") && exprType.borrowedFrom) {
+      type.borrowedFrom = exprType.borrowedFrom
     }
 
     if (exprType.hasOwnProperty("referenceFlag") && exprType.referenceFlag) {
@@ -234,12 +234,31 @@ class RustTypeAndOwnershipChecker
   }
 
   public visitVariableAssignment(ctx: VariableAssignmentContext): TypeOwnership {
-    const type: TypeOwnership = this.ownership_environment.lookup(ctx.lvalue().IDENT().getText());
-    if (!type) {
-      throw new Error(`Variable ${ctx.lvalue().IDENT().getText()} is not declared`);
+    let starCount = -1;
+    let name: string = "";
+    let lvalue = ctx.lvalue();
+    while(lvalue) {
+      starCount++;
+      name = lvalue.getText();
+      lvalue = lvalue.lvalue();
     }
-    const name: string = ctx.lvalue().IDENT().getText();
+    const type: TypeOwnership = this.ownership_environment.lookup(name);
+    if (!type) {
+      throw new Error(`Variable ${name} is not declared`);
+    }
     const exprType: TypeOwnership = this.visit(ctx.expression());
+
+    while (starCount--) {
+      let currType = type.type as string;
+      if (currType.startsWith("&")) {
+        currType = currType.slice(1);
+      } else {
+        throw new Error(
+          `Cannot dereference non-pointer type: ${type.type} (at *${ctx.getChildCount() - 1})`
+        );
+      }
+      type.type = currType as Type;
+    }
 
     if (!this.typesEqual(type.type, exprType.type)) {
       throw new Error(
@@ -279,12 +298,7 @@ class RustTypeAndOwnershipChecker
     let blockType: TypeOwnership = null;
     for (let i = 0; i < ctx.statement().length; i++) {
       const stmt = ctx.statement(i);
-      if (
-        stmt.returnStatement() ||
-        stmt.ifStatement() ||
-        stmt.blockStatement() ||
-        stmt.whileLoop()
-      ) {
+      if (stmt.returnStatement() || stmt.ifStatement() || stmt.blockStatement() || stmt.whileLoop()) {
         const temp: TypeOwnership = this.visit(stmt);
         if (temp !== null && blockType === null) {
           blockType = temp;
@@ -297,7 +311,7 @@ class RustTypeAndOwnershipChecker
     // Return variables borrowed in this block before exiting the scope
     for (const [name, type] of this.ownership_environment.symbols) {
       if (type.borrowedFrom) {
-        type.borrowedFrom.borrowedFlag = false;
+        this.ownership_environment.lookup(type.borrowedFrom).borrowedFlag = false;
       }
     }
 
@@ -371,37 +385,20 @@ class RustTypeAndOwnershipChecker
       const name: string = ctx.IDENT().getText();
       const type: TypeOwnership = this.ownership_environment.lookup(name);
       if (!type) {
-        throw new Error(
-          `Undefined identifier ${ctx.getChild(ctx.getChildCount() - 1).getText()}`
-        );
+        throw new Error(`Undefined identifier ${name}`);
       }
       let derefType = type.type as string;
-      for (let i = 0; i < starCount; i++) {
-        if (derefType.startsWith("&")) {
-          derefType = derefType.slice(1);
-        } else {
-          throw new Error(
-            `Cannot dereference non-pointer type: ${derefType} (at *${i + 1})`
-          );
-        }
-      }
       return {
         ...type,
-        type: derefType as Type,
+        type: derefType.slice(starCount) as Type,
       };
     }
 
     if (ctx.getChildCount() === 2 && (ctx.getChild(0).getText() === "-" || ctx.getChild(0).getText() === "!")) {
       const type: TypeOwnership = this.visit(ctx.getChild(1));
-      if (
-        ctx.getChild(0).getText() === "!" &&
-        !this.typesEqual(type.type, "bool")
-      ) {
+      if (ctx.getChild(0).getText() === "!" && !this.typesEqual(type.type, "bool")) {
         throw new Error(`Expected bool type but get ${type} type`);
-      } else if (
-        ctx.getChild(0).getText() === "-" &&
-        !this.typesEqual(type.type, "num")
-      ) {
+      } else if (ctx.getChild(0).getText() === "-" && !this.typesEqual(type.type, "num")) {
         throw new Error(`Expected num type but get ${type} type`);
       }
       return {
@@ -412,9 +409,8 @@ class RustTypeAndOwnershipChecker
     }
 
     if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "&" && ctx.getChild(1).getText() === "mut") {
-      const type: TypeOwnership = this.ownership_environment.lookup(
-        ctx.getChild(2).getText()
-      );
+      const name = ctx.getChild(2).getText();
+      const type: TypeOwnership = this.ownership_environment.lookup(name);
       if (!type) {
         throw new Error(`Undefined identifier ${ctx.getChild(2).getText()}`);
       }
@@ -429,8 +425,11 @@ class RustTypeAndOwnershipChecker
         );
       }
       type.borrowedFlag = true;
-      type.type = "&" + type.type as Type;
-      return type;
+      return {
+        ...type,
+        type: "&" + type.type as Type,
+        borrowedFrom: name,
+      }
     }
 
     if (ctx.getChildCount() === 3 && ctx.getChild(0).getText() === "(") {

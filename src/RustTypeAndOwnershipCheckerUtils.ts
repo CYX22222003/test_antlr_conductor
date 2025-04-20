@@ -39,7 +39,7 @@ export type TypeOwnership = {
   referenceFlag?: boolean;
   mutableFlag?: boolean;
   borrowedFlag?: boolean;
-  borrowedFrom?: TypeOwnership;
+  borrowedFrom?: string;
   paramsTypeOwnership?: TypeOwnership[];
   returnTypeOwnership?: TypeOwnership;
 };
